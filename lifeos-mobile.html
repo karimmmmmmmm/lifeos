@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<title>Life OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#000;--bg2:#0d0d0d;--bg3:#141414;--bg4:#1c1c1c;--b:rgba(255,255,255,0.08);--b2:rgba(255,255,255,0.15);--w:#fff;--w2:rgba(255,255,255,0.85);--w3:rgba(255,255,255,0.5);--w4:rgba(255,255,255,0.28);--green:#4ade80;--amber:#fbbf24;--red:#f87171}
+html{background:#000}
+body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;min-height:100vh;min-height:100dvh;overflow-x:hidden}
+.screen{display:none;flex-direction:column;min-height:100vh;min-height:100dvh}
+.screen.active{display:flex}
+
+/* ── SETUP ── */
+.setup-wrap{flex:1;padding:60px 24px 40px;display:flex;flex-direction:column;gap:20px;overflow-y:auto}
+.logo{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;letter-spacing:.3em;color:#fff;margin-bottom:4px}
+.tagline{font-family:'Space Mono',monospace;font-size:10px;color:var(--w4);letter-spacing:.2em}
+.card{background:var(--bg2);border:1px solid var(--b);border-radius:16px;padding:18px}
+.card-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:.18em;color:#fff;margin-bottom:12px}
+.step{display:flex;gap:14px;margin-bottom:14px}
+.step:last-child{margin-bottom:0}
+.step-n{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--b2);flex-shrink:0;width:26px;line-height:1.2}
+.step-t{font-size:14px;font-weight:600;color:var(--w2);margin-bottom:3px}
+.step-d{font-size:12px;color:var(--w3);line-height:1.55}
+.code-pill{font-family:'Space Mono',monospace;font-size:10px;color:var(--w3);background:var(--bg3);border:1px solid var(--b);border-radius:6px;padding:6px 10px;margin-top:6px;word-break:break-all;display:block}
+.inp-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--w4);letter-spacing:.15em;text-transform:uppercase;margin-bottom:7px;display:block}
+.inp{width:100%;background:var(--bg3);border:1px solid var(--b2);border-radius:12px;padding:14px 16px;color:#fff;font-family:'Space Mono',monospace;font-size:12px;outline:none;-webkit-appearance:none;appearance:none}
+.inp::placeholder{color:var(--w4)}
+.inp:focus{border-color:rgba(255,255,255,0.3);outline:none}
+.big-btn{width:100%;padding:16px;background:#fff;border:none;border-radius:12px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:.18em;color:#000;cursor:pointer;margin-top:4px;-webkit-appearance:none;appearance:none}
+.big-btn:active{opacity:.8}
+.err{font-family:'Space Mono',monospace;font-size:10px;color:var(--red);margin-top:8px;display:none}
+.err.show{display:block}
+
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:52px 20px 12px;flex-shrink:0}
+.hdr-logo{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;letter-spacing:.2em}
+.hdr-pill{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:8px;color:var(--w4);letter-spacing:.1em;background:var(--bg2);border:1px solid var(--b);border-radius:100px;padding:5px 10px}
+.hdot{width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0;animation:dp 2s ease-in-out infinite}
+.hdot.live{background:var(--green)}
+@keyframes dp{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── TABS ── */
+.tabs{display:flex;padding:0 20px;border-bottom:1px solid var(--b);flex-shrink:0}
+.tab{flex:1;padding:11px 4px;text-align:center;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:.12em;color:var(--w4);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase}
+.tab.on{color:#fff;border-bottom-color:#fff}
+
+/* ── CONTENT ── */
+.pane{display:none;flex:1;overflow-y:auto;padding:16px 20px 100px;-webkit-overflow-scrolling:touch}
+.pane.on{display:flex;flex-direction:column;gap:12px}
+.sec{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:.2em;color:var(--w4);text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--b)}
+
+/* ── TASKS ── */
+.prog-row{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:10px;color:var(--w4);margin-bottom:5px}
+.pbar{background:rgba(255,255,255,0.07);border-radius:100px;height:3px;overflow:hidden}
+.pfill{height:100%;background:#fff;border-radius:100px;transition:width .5s}
+.add-row{display:flex;gap:8px;align-items:stretch}
+.add-inp{flex:1;background:var(--bg2);border:1px solid var(--b2);border-radius:12px;padding:13px 14px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:15px;outline:none;-webkit-appearance:none}
+.add-inp::placeholder{color:var(--w4)}
+.time-inp{width:96px;background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:13px 10px;color:var(--w3);font-family:'Space Mono',monospace;font-size:11px;outline:none;-webkit-appearance:none;text-align:center}
+.plus-btn{width:48px;height:48px;background:#fff;border:none;border-radius:12px;color:#000;font-size:24px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.plus-btn:active{opacity:.75}
+.titem{display:flex;align-items:center;gap:11px;padding:14px;background:var(--bg2);border:1px solid var(--b);border-radius:14px;transition:border-color .2s}
+.titem.done{opacity:.5}
+.chk{width:24px;height:24px;border:1.5px solid var(--b2);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .2s;font-size:12px}
+.chk.on{background:#fff;border-color:#fff;color:#000}
+.tbody{flex:1;min-width:0}
+.ttxt{font-size:15px;font-weight:500;color:var(--w2);line-height:1.3}
+.titem.done .ttxt{text-decoration:line-through;color:var(--w4)}
+.ttm{font-family:'Space Mono',monospace;font-size:10px;color:var(--w4);margin-top:2px}
+.tbtns{display:flex;gap:6px}
+.tbn{width:34px;height:34px;border-radius:9px;border:1px solid var(--b);background:var(--bg3);color:var(--w4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .2s}
+.tbn:active{background:var(--bg4);color:#fff}
+
+/* ── HABITS ── */
+.hrow{display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--bg2);border:1px solid var(--b);border-radius:14px}
+.hname{font-size:13px;font-weight:600;color:var(--w2);width:64px;flex-shrink:0}
+.hdays{display:flex;gap:4px;flex:1;justify-content:space-between}
+.hd{width:100%;max-width:34px;height:32px;border-radius:7px;background:rgba(255,255,255,0.05);border:1px solid var(--b);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:9px;color:var(--w4);transition:all .18s;-webkit-tap-highlight-color:transparent}
+.hd.on{background:rgba(255,255,255,0.88);border-color:transparent;color:#000;font-weight:700}
+.hd.td{border-color:rgba(255,255,255,0.3)}
+
+/* ── GYM ── */
+.gym-card{background:var(--bg2);border:1px solid var(--b);border-radius:16px;padding:22px;text-align:center}
+.gym-emoji{font-size:40px;margin-bottom:10px}
+.gym-st{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:#fff;margin-bottom:4px}
+.gym-sk{font-family:'Space Mono',monospace;font-size:10px;color:var(--w4);margin-bottom:18px}
+.gym-week{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.gwd{width:38px;height:38px;border-radius:9px;background:rgba(255,255,255,0.05);border:1px solid var(--b);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:9px;color:var(--w4);transition:all .18s}
+.gwd.on{background:rgba(255,255,255,0.88);border-color:transparent;color:#000;font-weight:700}
+.gwd.td{border-color:rgba(255,255,255,0.35)}
+.gym-btn{width:100%;padding:16px;background:#fff;border:none;border-radius:12px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:#000;cursor:pointer}
+.gym-btn:active{opacity:.8}
+.gym-btn.rest{background:var(--bg3);border:1px solid var(--b2);color:var(--w3)}
+
+/* ── CALENDAR ── */
+.cal-btn{width:100%;padding:13px;background:var(--bg2);border:1px solid var(--b2);border-radius:12px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:.15em;color:var(--w3);cursor:pointer}
+.cal-btn:active{opacity:.7}
+.cev{display:flex;gap:11px;align-items:flex-start;padding:13px;background:var(--bg2);border:1px solid var(--b);border-radius:14px}
+.ctime{font-family:'Orbitron',monospace;font-size:10px;color:var(--w4);min-width:40px;flex-shrink:0;padding-top:2px}
+.ctitle{font-size:14px;font-weight:500;color:var(--w2);flex:1}
+.csrc{font-family:'Space Mono',monospace;font-size:7px;color:var(--w4);border:1px solid var(--b);border-radius:4px;padding:2px 5px;flex-shrink:0}
+.cal-empty{text-align:center;padding:28px;font-family:'Space Mono',monospace;font-size:10px;color:var(--w4)}
+.cal-note{font-family:'Space Mono',monospace;font-size:8px;color:var(--w4);text-align:center}
+
+/* ── EDIT SHEET ── */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.sheet-bg.off{display:none}
+.sheet{background:var(--bg2);border:1px solid var(--b2);border-radius:22px 22px 0 0;padding:20px 20px 44px;width:100%;animation:sup .22s ease}
+@keyframes sup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;background:rgba(255,255,255,0.18);border-radius:2px;margin:0 auto 18px}
+.sheet-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:.2em;color:#fff;margin-bottom:16px}
+.sheet-field{margin-bottom:12px}
+.sheet-lbl{font-family:'Space Mono',monospace;font-size:9px;color:var(--w4);letter-spacing:.15em;text-transform:uppercase;display:block;margin-bottom:6px}
+.sheet-inp{width:100%;background:var(--bg3);border:1px solid var(--b2);border-radius:12px;padding:13px 14px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:16px;outline:none;-webkit-appearance:none}
+.sheet-inp::placeholder{color:var(--w4)}
+.sheet-acts{display:flex;gap:8px;margin-top:16px}
+.sbn{flex:1;padding:14px;border-radius:12px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.12em;cursor:pointer;border:none;-webkit-appearance:none}
+.sbn.primary{background:#fff;color:#000}
+.sbn.secondary{background:none;border:1px solid var(--b2);color:var(--w3)}
+.sbn.danger{background:none;border:1px solid rgba(248,113,113,0.3);color:rgba(248,113,113,0.8)}
+.sbn:active{opacity:.75}
+
+/* ── BOTTOM SYNC BAR ── */
+.syncbar{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--bg2);border-top:1px solid var(--b);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;z-index:50}
+.syncbar.off{display:none}
+.sync-txt{font-family:'Space Mono',monospace;font-size:8px;color:var(--w4);letter-spacing:.1em}
+.sync-live-row{display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:8px;color:var(--green)}
+.sld{width:5px;height:5px;border-radius:50%;background:var(--green);animation:dp 1.5s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP SCREEN ══ -->
+<div class="screen active" id="screenSetup">
+  <div class="setup-wrap">
+    <div>
+      <div class="logo">LIFE OS</div>
+      <div class="tagline">MOBILE CONTROL — BEIRUT</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">FIREBASE SETUP</div>
+      <div class="step">
+        <div class="step-n">1</div>
+        <div>
+          <div class="step-t">Create a free Firebase project</div>
+          <div class="step-d">Go to the link below, tap Add project, name it "lifeos", continue with defaults.</div>
+          <a href="https://console.firebase.google.com" target="_blank" class="code-pill">console.firebase.google.com ↗</a>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">2</div>
+        <div>
+          <div class="step-t">Enable Realtime Database</div>
+          <div class="step-d">Inside your project: Build → Realtime Database → Create database → Start in test mode → Done.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">3</div>
+        <div>
+          <div class="step-t">Copy your database URL</div>
+          <div class="step-d">At the top of the Realtime Database page, copy the URL that looks like this:</div>
+          <span class="code-pill">https://lifeos-xxxxx-default-rtdb.firebaseio.com</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">PASTE YOUR URL</div>
+      <label class="inp-label">Firebase Database URL</label>
+      <input class="inp" id="fbInp" type="url" inputmode="url" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="https://your-project-default-rtdb.firebaseio.com">
+      <div class="err" id="fbErr">Please paste a valid https:// Firebase URL</div>
+      <button class="big-btn" id="connectBtn" style="margin-top:14px">CONNECT & START →</button>
+    </div>
+
+    <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--w4);text-align:center;line-height:1.7">
+      Free forever · No account needed beyond Firebase<br>Your data stays in your own Firebase project
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div class="screen" id="screenApp">
+
+  <div class="hdr">
+    <div class="hdr-logo">LIFE OS</div>
+    <div class="hdr-pill"><div class="hdot" id="hdot"></div><span id="htxt">CONNECTING</span></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-p="tasks">Tasks</div>
+    <div class="tab" data-p="habits">Habits</div>
+    <div class="tab" data-p="gym">Gym</div>
+    <div class="tab" data-p="calendar">Calendar</div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="pane on" id="p-tasks">
+    <div>
+      <div class="prog-row"><span id="progTxt">0 / 0</span><span id="progPct">0%</span></div>
+      <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+    </div>
+    <div class="add-row">
+      <input class="add-inp" id="addInp" type="text" placeholder="New task..." autocomplete="off">
+      <input class="time-inp" id="addTime" type="time">
+      <button class="plus-btn" id="addBtn">+</button>
+    </div>
+    <div class="sec">Today</div>
+    <div id="taskList" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="pane" id="p-habits">
+    <div class="sec">Weekly habits</div>
+    <div id="habitList" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
+  <!-- GYM -->
+  <div class="pane" id="p-gym">
+    <div class="sec">This week</div>
+    <div class="gym-card">
+      <div class="gym-emoji" id="gymEmoji">🏋️</div>
+      <div class="gym-st" id="gymSt">Rest Day</div>
+      <div class="gym-sk" id="gymSk">0-DAY STREAK</div>
+      <div class="gym-week" id="gymWeek"></div>
+      <button class="gym-btn" id="gymBtn">LOG WORKOUT</button>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="pane" id="p-calendar">
+    <div class="sec">Today's events</div>
+    <button class="cal-btn" id="calBtn">↻ SYNC GOOGLE CALENDAR</button>
+    <div id="calList" style="display:flex;flex-direction:column;gap:8px"><div class="cal-empty">Tap sync to load events</div></div>
+    <div class="cal-note" id="calNote"></div>
+  </div>
+
+</div>
+
+<!-- EDIT SHEET -->
+<div class="sheet-bg off" id="sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">EDIT TASK</div>
+    <div class="sheet-field">
+      <label class="sheet-lbl">Task name</label>
+      <input class="sheet-inp" id="shName" type="text" placeholder="Task name...">
+    </div>
+    <div class="sheet-field">
+      <label class="sheet-lbl">Time</label>
+      <input class="sheet-inp" id="shTime" type="time">
+    </div>
+    <div class="sheet-acts">
+      <button class="sbn secondary" id="shCancel">CANCEL</button>
+      <button class="sbn danger" id="shDelete">DELETE</button>
+      <button class="sbn primary" id="shSave">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- SYNC BAR -->
+<div class="syncbar off" id="syncbar">
+  <div class="sync-txt" id="syncTxt">—</div>
+  <div class="sync-live-row"><div class="sld"></div>LIVE</div>
+</div>
+
+<script>
+// ── FIREBASE ──
+let FBURL = localStorage.getItem('lo_fb') || '';
+const db = {
+  async get(p){ try{const r=await fetch(`${FBURL}/${p}.json`);if(!r.ok)throw new Error('bad');return r.json();}catch{return null;}},
+  async put(p,d){ if(!FBURL)return false;try{const r=await fetch(`${FBURL}/${p}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});return r.ok;}catch{return false;}},
+  poll(p,cb,ms=2500){let last=null;const fn=async()=>{const d=await db.get(p);const s=JSON.stringify(d);if(s!==last){last=s;cb(d);}};fn();return setInterval(fn,ms);}
+};
+
+// ── SETUP ──
+function goSetup(){document.getElementById('screenSetup').classList.add('active');document.getElementById('screenApp').classList.remove('active');}
+function goApp(){document.getElementById('screenSetup').classList.remove('active');document.getElementById('screenApp').classList.add('active');}
+
+document.getElementById('connectBtn').addEventListener('click',async function(){
+  const url = document.getElementById('fbInp').value.trim().replace(/\/+$/,'');
+  const err = document.getElementById('fbErr');
+  if(!url.startsWith('https://')||!url.includes('firebaseio')){err.classList.add('show');return;}
+  err.classList.remove('show');
+  this.textContent='TESTING CONNECTION...';
+  // Test the connection
+  try{
+    const r = await fetch(`${url}/ping.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:'"ok"'});
+    if(!r.ok)throw new Error('failed');
+    FBURL=url;localStorage.setItem('lo_fb',url);
+    this.textContent='CONNECT & START →';
+    startApp();
+  }catch(e){
+    this.textContent='CONNECT & START →';
+    err.textContent='Could not connect. Check the URL and make sure test mode is enabled.';
+    err.classList.add('show');
+  }
+});
+
+// ── STATE ──
+let tasks=[], habits=[], gymDone=new Array(7).fill(false);
+let nextId=1, editId=null, todayI=(new Date().getDay()+6)%7;
+const DL=['M','T','W','T','F','S','S'];
+const GDL=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const HABIT_DEF=[
+  {name:'Gym',days:new Array(7).fill(false)},
+  {name:'Study',days:new Array(7).fill(false)},
+  {name:'Sleep',days:new Array(7).fill(false)},
+  {name:'Water',days:new Array(7).fill(false)},
+  {name:'Reading',days:new Array(7).fill(false)},
+];
+const TASK_DEF=[
+  {id:1,text:'Review project proposal',time:'09:00',done:false},
+  {id:2,text:'Morning workout',time:'07:30',done:true},
+  {id:3,text:'Read 30 minutes',time:'12:00',done:false},
+  {id:4,text:'Team sync meeting',time:'14:00',done:false},
+  {id:5,text:'Study — 2 hours',time:'16:00',done:false},
+];
+
+// ── SYNC STATUS ──
+function setStatus(live,msg){
+  const dot=document.getElementById('hdot'),txt=document.getElementById('htxt');
+  dot.classList.toggle('live',live);
+  txt.textContent=msg;
+  if(live){
+    document.getElementById('syncbar').classList.remove('off');
+    document.getElementById('syncTxt').textContent='SYNCED '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  }
+}
+async function push(){
+  const ok=await db.put('lifeos',{tasks,habits,gymDone,at:Date.now()});
+  setStatus(ok,'SYNCED');
+}
+function apply(d){
+  if(!d)return;
+  let ch=false;
+  if(d.tasks){tasks=d.tasks;nextId=Math.max(0,...tasks.map(t=>t.id||0))+1;renderTasks();ch=true;}
+  if(d.habits){habits=d.habits;renderHabits();ch=true;}
+  if(d.gymDone){gymDone=d.gymDone;renderGym();ch=true;}
+  if(ch)setStatus(true,'LIVE');
+}
+
+// ── TABS ──
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('p-'+t.dataset.p).classList.add('on');
+  });
+});
+
+// ── TASKS ──
+function renderTasks(){
+  const l=document.getElementById('taskList');l.innerHTML='';
+  const done=tasks.filter(t=>t.done).length;
+  const pct=tasks.length?Math.round(done/tasks.length*100):0;
+  document.getElementById('progTxt').textContent=`${done} / ${tasks.length} done`;
+  document.getElementById('progPct').textContent=pct+'%';
+  document.getElementById('pfill').style.width=pct+'%';
+  [...tasks].sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99')).forEach(t=>{
+    const d=document.createElement('div');d.className='titem'+(t.done?' done':'');
+    d.innerHTML=`<div class="chk${t.done?' on':''}" data-id="${t.id}">${t.done?'✓':''}</div>
+<div class="tbody"><div class="ttxt">${escH(t.text)}</div>${t.time?`<div class="ttm">${t.time}</div>`:''}</div>
+<div class="tbtns"><button class="tbn" data-edit="${t.id}">✎</button><button class="tbn" data-del="${t.id}">×</button></div>`;
+    d.querySelector('.chk').addEventListener('click',()=>toggle(t.id));
+    d.querySelector('[data-edit]').addEventListener('click',()=>openSheet(t.id));
+    d.querySelector('[data-del]').addEventListener('click',()=>del(t.id));
+    l.appendChild(d);
+  });
+}
+function escH(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function toggle(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;renderTasks();await push();}
+async function del(id){tasks=tasks.filter(x=>x.id!==id);renderTasks();await push();}
+document.getElementById('addBtn').addEventListener('click',addTask);
+document.getElementById('addInp').addEventListener('keydown',e=>{if(e.key==='Enter')addTask();});
+async function addTask(){
+  const ni=document.getElementById('addInp'),ti=document.getElementById('addTime');
+  const txt=ni.value.trim();if(!txt)return;
+  tasks.push({id:nextId++,text:txt,time:ti.value||'',done:false});
+  ni.value='';ti.value='';renderTasks();await push();
+}
+
+// ── EDIT SHEET ──
+function openSheet(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  editId=id;
+  document.getElementById('shName').value=t.text;
+  document.getElementById('shTime').value=t.time||'';
+  document.getElementById('sheet').classList.remove('off');
+  setTimeout(()=>document.getElementById('shName').focus(),60);
+}
+function closeSheet(){document.getElementById('sheet').classList.add('off');editId=null;}
+document.getElementById('shCancel').addEventListener('click',closeSheet);
+document.getElementById('sheet').addEventListener('click',e=>{if(e.target===document.getElementById('sheet'))closeSheet();});
+document.getElementById('shSave').addEventListener('click',async()=>{
+  const txt=document.getElementById('shName').value.trim();if(!txt)return;
+  const t=tasks.find(x=>x.id===editId);if(t){t.text=txt;t.time=document.getElementById('shTime').value;}
+  renderTasks();await push();closeSheet();
+});
+document.getElementById('shDelete').addEventListener('click',async()=>{
+  tasks=tasks.filter(x=>x.id!==editId);renderTasks();await push();closeSheet();
+});
+
+// ── HABITS ──
+function renderHabits(){
+  const l=document.getElementById('habitList');l.innerHTML='';
+  habits.forEach((h,hi)=>{
+    const row=document.createElement('div');row.className='hrow';
+    const ds=DL.map((d,di)=>`<div class="hd${h.days[di]?' on':''}${di===todayI?' td':''}" data-hi="${hi}" data-di="${di}">${d}</div>`).join('');
+    row.innerHTML=`<div class="hname">${h.name}</div><div class="hdays">${ds}</div>`;
+    row.querySelectorAll('.hd').forEach(el=>{
+      el.addEventListener('click',async()=>{
+        habits[+el.dataset.hi].days[+el.dataset.di]=!habits[+el.dataset.hi].days[+el.dataset.di];
+        renderHabits();await push();
+      });
+    });
+    l.appendChild(row);
+  });
+}
+
+// ── GYM ──
+function renderGym(){
+  const wk=document.getElementById('gymWeek');wk.innerHTML='';
+  gymDone.forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='gwd'+(d?' on':'')+(i===todayI?' td':'');
+    el.textContent=GDL[i][0];
+    el.addEventListener('click',async()=>{gymDone[i]=!gymDone[i];renderGym();await push();});
+    wk.appendChild(el);
+  });
+  const streak=gymDone.filter(Boolean).length;
+  const doneToday=gymDone[todayI];
+  document.getElementById('gymEmoji').textContent=doneToday?'💪':'🏋️';
+  document.getElementById('gymSt').textContent=doneToday?'Workout Complete ✓':'Rest Day — Recovery';
+  document.getElementById('gymSk').textContent=streak+'-DAY STREAK THIS WEEK';
+  const btn=document.getElementById('gymBtn');
+  btn.textContent=doneToday?'MARK AS REST DAY':'LOG TODAY\'S WORKOUT';
+  btn.className='gym-btn'+(doneToday?' rest':'');
+}
+document.getElementById('gymBtn').addEventListener('click',async()=>{gymDone[todayI]=!gymDone[todayI];renderGym();await push();});
+
+// ── CALENDAR ──
+let calSyncing=false;
+document.getElementById('calBtn').addEventListener('click',syncCal);
+async function syncCal(){
+  if(calSyncing)return;calSyncing=true;
+  const btn=document.getElementById('calBtn');btn.textContent='↻ SYNCING...';
+  try{
+    const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'}));
+    const s=new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0).toISOString();
+    const e=new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59).toISOString();
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
+        system:`Use Google Calendar MCP to list events between ${s} and ${e} (Asia/Beirut). Return ONLY a JSON array with "time"(HH:MM),"title","source"="gcal". No markdown.`,
+        messages:[{role:'user',content:'Get today calendar events as JSON array.'}],
+        mcp_servers:[{type:'url',url:'https://calendarmcp.googleapis.com/mcp/v1',name:'google-calendar'}]
+      })
+    });
+    const data=await res.json();
+    const tb=data.content&&data.content.find(b=>b.type==='text');
+    if(!tb)throw 0;
+    const arr=JSON.parse(tb.text.trim().replace(/```json|```/g,'').trim());
+    renderCal(arr,true);
+    document.getElementById('calNote').textContent=`✓ ${arr.length} events from Google Calendar`;
+  }catch{
+    const sample=[{time:'09:00',title:'Project Review',source:'sample'},{time:'14:00',title:'Team Sync',source:'sample'},{time:'17:00',title:'Gym Session',source:'sample'}];
+    renderCal(sample,false);
+    document.getElementById('calNote').textContent='Sample events — connect Google Calendar in Claude settings';
+  }
+  btn.textContent='↻ SYNC GOOGLE CALENDAR';calSyncing=false;
+}
+function renderCal(evts,live){
+  const l=document.getElementById('calList');l.innerHTML='';
+  if(!evts.length){l.innerHTML='<div class="cal-empty">No events today</div>';return;}
+  evts.sort((a,b)=>a.time.localeCompare(b.time)).forEach(e=>{
+    const d=document.createElement('div');d.className='cev';
+    d.innerHTML=`<div class="ctime">${e.time}</div><div class="ctitle">${escH(e.title)}</div>${live?'<div class="csrc">GCAL</div>':''}`;
+    l.appendChild(d);
+  });
+}
+
+// ── START ──
+async function startApp(){
+  goApp();
+  setStatus(false,'CONNECTING...');
+  const data=await db.get('lifeos');
+  if(data&&data.tasks){
+    tasks=data.tasks;nextId=Math.max(0,...tasks.map(t=>t.id||0))+1;
+    habits=data.habits||HABIT_DEF;
+    gymDone=data.gymDone||new Array(7).fill(false);
+  } else {
+    tasks=JSON.parse(JSON.stringify(TASK_DEF));nextId=6;
+    habits=JSON.parse(JSON.stringify(HABIT_DEF));
+    gymDone=new Array(7).fill(false);
+    await push();
+  }
+  renderTasks();renderHabits();renderGym();
+  setStatus(true,'LIVE');
+  db.poll('lifeos',apply,2500);
+}
+
+if(FBURL){startApp();}
+</script>
+</body>
+</html>
