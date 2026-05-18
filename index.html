@@ -160,6 +160,8 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
 
 /* CALENDAR */
 .cal-btn{width:100%;padding:12px;background:var(--bg2);border:1px solid var(--b2);border-radius:12px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:.15em;color:var(--w3);cursor:pointer;flex-shrink:0}
+.cal-filter-btn{flex:1;padding:7px 4px;background:var(--bg2);border:1px solid var(--b);border-radius:8px;font-family:'Orbitron',monospace;font-size:7px;letter-spacing:.1em;color:var(--w4);cursor:pointer;text-align:center;transition:all .2s}
+.cal-filter-btn.active{background:rgba(255,255,255,0.08);border-color:var(--b2);color:var(--w)}
 .cal-btn:active{opacity:.7}
 .cev{display:flex;gap:10px;align-items:flex-start;padding:12px 13px;background:var(--bg2);border:1px solid var(--b);border-radius:12px}
 .ctime{font-family:'Orbitron',monospace;font-size:9px;color:var(--w4);min-width:38px;flex-shrink:0;padding-top:2px}
@@ -294,13 +296,51 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
         <button class="ai-mic" id="aiMic">🎙</button>
       </div>
     </div>
+    <!-- HISTORY -->
+    <div class="pane" id="p-history">
+      <div class="sec">Progress History</div>
+
+      <!-- TASK COMPLETION CHART -->
+      <div style="background:var(--bg2);border:1px solid var(--b);border-radius:14px;padding:16px">
+        <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.18em;color:var(--w4);margin-bottom:4px">TASK COMPLETION — LAST 7 DAYS</div>
+        <div style="display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:10px" id="histTaskBars"></div>
+      </div>
+
+      <!-- HABIT CONSISTENCY -->
+      <div style="background:var(--bg2);border:1px solid var(--b);border-radius:14px;padding:16px">
+        <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.18em;color:var(--w4);margin-bottom:12px">HABIT CONSISTENCY</div>
+        <div id="histHabitGrid"></div>
+      </div>
+
+      <!-- GYM HISTORY -->
+      <div style="background:var(--bg2);border:1px solid var(--b);border-radius:14px;padding:16px">
+        <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.18em;color:var(--w4);margin-bottom:4px">GYM SESSIONS — THIS WEEK</div>
+        <div style="display:flex;gap:6px;margin-top:10px" id="histGymDots"></div>
+      </div>
+
+      <!-- WEEKLY SUMMARY -->
+      <div style="background:var(--bg2);border:1px solid var(--b);border-radius:14px;padding:16px">
+        <div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:.18em;color:var(--w4);margin-bottom:12px">WEEKLY SUMMARY</div>
+        <div id="histSummary" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+    </div>
+
     <!-- CALENDAR -->
     <div class="pane" id="p-cal">
-      <div class="sec">Today's Events</div>
-      <div class="add-row" style="margin-bottom:4px">
-        <input class="add-inp" id="calTitleInp" type="text" placeholder="Event name..." autocomplete="off">
-        <input class="time-inp" id="calTimeInp" type="time">
-        <button class="plus-btn" id="calAddBtn">+</button>
+      <div class="sec">Events</div>
+      <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0">
+        <input class="add-inp" id="calTitleInp" type="text" placeholder="Event name..." autocomplete="off" style="width:100%">
+        <div class="add-row">
+          <input class="time-inp" id="calDateInp" type="date" style="flex:1;width:auto">
+          <input class="time-inp" id="calTimeInp" type="time" style="width:90px">
+          <button class="plus-btn" id="calAddBtn">+</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;margin-top:4px">
+        <button class="cal-filter-btn active" data-f="today" id="cfToday">Today</button>
+        <button class="cal-filter-btn" data-f="tomorrow" id="cfTomorrow">Tomorrow</button>
+        <button class="cal-filter-btn" data-f="week" id="cfWeek">Week</button>
+        <button class="cal-filter-btn" data-f="all" id="cfAll">All</button>
       </div>
       <div id="calList" style="display:flex;flex-direction:column;gap:7px"></div>
       <div class="cal-note" id="calNote"></div>
@@ -312,7 +352,7 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
     <button class="bni" data-p="habits"><div class="bni-ico">🔁</div><div class="bni-lbl">Habits</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="gym"><div class="bni-ico">🏋️</div><div class="bni-lbl">Gym</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="music"><div class="bni-ico">🎵</div><div class="bni-lbl">Music</div><div class="bni-dot"></div></button>
-    <button class="bni" data-p="ai"><div class="bni-ico">🤖</div><div class="bni-lbl">AI</div><div class="bni-dot"></div></button>
+    <button class="bni" data-p="history"><div class="bni-ico">📊</div><div class="bni-lbl">History</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="cal"><div class="bni-ico">📅</div><div class="bni-lbl">Cal</div><div class="bni-dot"></div></button>
   </div>
 </div>
@@ -383,12 +423,13 @@ const TDEF=[{id:1,text:'Review project proposal',time:'09:00',done:false},{id:2,
 const HDEF=[{id:1,name:'Gym',days:new Array(7).fill(false)},{id:2,name:'Study',days:new Array(7).fill(false)},{id:3,name:'Sleep',days:new Array(7).fill(false)},{id:4,name:'Water',days:new Array(7).fill(false)},{id:5,name:'Reading',days:new Array(7).fill(false)}];
 
 // ── NAV ──
-document.querySelectorAll('.bni').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('.bni').forEach(x=>x.classList.remove('on'));
-    document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+document.querySelectorAll('.bni').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.bni').forEach(function(x){x.classList.remove('on');});
+    document.querySelectorAll('.pane').forEach(function(x){x.classList.remove('on');});
     b.classList.add('on');
     document.getElementById('p-'+b.dataset.p).classList.add('on');
+    if(b.dataset.p==='history') renderHistory();
   });
 });
 
@@ -433,19 +474,19 @@ function renderTasks(){
     d.querySelector('.chk').addEventListener('click',()=>toggleT(t.id));
     d.querySelector('.ttxt').addEventListener('click',()=>toggleT(t.id));
     d.querySelector('[data-edit]').addEventListener('click',()=>openSheet('task',t.id));
-    d.querySelector('[data-del]').addEventListener('click',async()=>{tasks=tasks.filter(x=>x.id!==t.id);renderTasks();await push('tasks');});
+    d.querySelector('[data-del]').addEventListener('click',async()=>{tasks=tasks.filter(x=>x.id!==t.id);renderTasks();saveHistory();await push('tasks');});
     l.appendChild(d);
   });
   buildBriefing();
 }
-async function toggleT(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;renderTasks();await push('tasks');}
+async function toggleT(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;renderTasks();saveHistory();await push('tasks');}
 document.getElementById('addBtn').addEventListener('click',addTask);
 document.getElementById('addInp').addEventListener('keydown',e=>{if(e.key==='Enter')addTask();});
 async function addTask(){
   const ni=document.getElementById('addInp'),ti=document.getElementById('addTime');
   const txt=ni.value.trim();if(!txt)return;
   tasks.push({id:nextTId++,text:txt,time:ti.value||'',done:false});
-  ni.value='';ti.value='';renderTasks();await push('tasks');
+  ni.value='';ti.value='';renderTasks();saveHistory();await push('tasks');
 }
 
 // ── HABITS ──
@@ -529,7 +570,7 @@ async function sendAI(){
   try{
     var GEMINI_KEY = localStorage.getItem('lo_gemini_key') || '';
     if(!GEMINI_KEY) throw new Error('NO_KEY');
-    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY;
+    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + GEMINI_KEY;
     const history = chatH.map(function(m){ return {role: m.role==='assistant'?'model':'user', parts:[{text:m.content}]}; });
     const res=await fetch(geminiUrl,{
       method:'POST',
@@ -567,33 +608,79 @@ document.getElementById('aiMic').addEventListener('click',()=>{
 });
 
 // ── BUILT-IN CALENDAR ──
+var calFilter = 'today';
 function renderCal(){
-  const l=document.getElementById('calList');l.innerHTML='';
-  const sorted=[...calEvents].sort((a,b)=>a.time.localeCompare(b.time));
-  if(!sorted.length){l.innerHTML='<div style="font-family:Space Mono,monospace;font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:24px">No events. Add one above.</div>';return;}
-  sorted.forEach(e=>{
-    const d=document.createElement('div');d.className='cev';
-    d.innerHTML='<div class="ctime">'+e.time+'</div><div class="ctitle" style="flex:1">'+esc(e.title)+'</div><button class="tbn" data-calEdit="'+e.id+'" style="flex-shrink:0">✎</button><button class="tbn" data-calDel="'+e.id+'" style="flex-shrink:0;color:rgba(248,113,113,0.7)">×</button>';
-    d.querySelector('[data-calEdit]').addEventListener('click',()=>openSheet('cal',e.id));
-    d.querySelector('[data-calDel]').addEventListener('click',async()=>{calEvents=calEvents.filter(x=>x.id!==e.id);renderCal();await pushCal();});
+  var l=document.getElementById('calList');l.innerHTML='';
+  var now=new Date();
+  var todayStr=now.toDateString();
+  var tomorrowStr=new Date(now.getTime()+86400000).toDateString();
+  var sorted=calEvents.slice().sort(function(a,b){
+    var da=a.date||todayStr,db=b.date||todayStr;
+    return da!==db?new Date(da)-new Date(db):a.time.localeCompare(b.time);
+  });
+  var filtered=sorted.filter(function(e){
+    var evDate=e.date||todayStr;
+    var evD=new Date(evDate);
+    if(calFilter==='today') return evDate===todayStr;
+    if(calFilter==='tomorrow') return evDate===tomorrowStr;
+    if(calFilter==='week'){var diff=(evD-now)/(86400000);return diff>=-1&&diff<=7;}
+    return true;
+  });
+  if(!filtered.length){
+    l.innerHTML='<div style="font-family:Space Mono,monospace;font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:24px">No events. Add one above.</div>';
+    return;
+  }
+  filtered.forEach(function(e){
+    var d=document.createElement('div');d.className='cev';
+    var dateLabel='';
+    if(e.date&&e.date!==todayStr){
+      var dt=new Date(e.date);
+      dateLabel='<div class="csrc" style="font-size:9px">'+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</div>';
+    }
+    d.innerHTML='<div class="ctime">'+e.time+'</div><div class="ctitle" style="flex:1">'+esc(e.title)+'</div>'+dateLabel+'<button class="tbn" data-calEdit="'+e.id+'" style="flex-shrink:0">✎</button><button class="tbn" data-calDel="'+e.id+'" style="flex-shrink:0;color:rgba(248,113,113,0.7)">×</button>';
+    d.querySelector('[data-calEdit]').addEventListener('click',function(){openSheet('cal',e.id);});
+    d.querySelector('[data-calDel]').addEventListener('click',async function(){calEvents=calEvents.filter(function(x){return x.id!==e.id;});renderCal();await pushCal();});
     l.appendChild(d);
   });
 }
+// Calendar filter buttons
+document.querySelectorAll('.cal-filter-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.cal-filter-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    calFilter=btn.dataset.f;
+    renderCal();
+  });
+});
 async function pushCal(){
   if(FBURL) await db.put('lifeos/calendar', calEvents);
 }
-document.getElementById('calAddBtn').addEventListener('click', async()=>{
-  const title=document.getElementById('calTitleInp').value.trim();
-  const time=document.getElementById('calTimeInp').value;
+document.getElementById('calAddBtn').addEventListener('click', async function(){
+  var title=document.getElementById('calTitleInp').value.trim();
+  var time=document.getElementById('calTimeInp').value;
+  var date=document.getElementById('calDateInp').value;
   if(!title)return;
-  calEvents.push({id:nextCalId++, title, time:time||'--:--'});
+  var dateStr=date?new Date(date).toDateString():new Date().toDateString();
+  calEvents.push({id:nextCalId++, title:title, time:time||'--:--', date:dateStr});
   document.getElementById('calTitleInp').value='';
   document.getElementById('calTimeInp').value='';
   renderCal(); await pushCal();
 });
-document.getElementById('calTitleInp').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('calAddBtn').click();});
+document.getElementById('calTitleInp').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('calAddBtn').click();});
 
 // ── DAILY BRIEFING ──
+function saveHistory(){
+  var today=new Date().toDateString();
+  var done=tasks.filter(function(t){return t.done;}).length;
+  var pct=tasks.length?Math.round(done/tasks.length*100):0;
+  var history=JSON.parse(localStorage.getItem('lo_history')||'[]');
+  var existing=history.find(function(p){return p.date===today;});
+  if(existing) existing.pct=pct;
+  else history.push({date:today,pct:pct});
+  if(history.length>30) history=history.slice(-30);
+  localStorage.setItem('lo_history',JSON.stringify(history));
+}
+
 function buildBriefing(){
   const remaining=tasks.filter(t=>!t.done).length;
   const streak=gymDone.filter(Boolean).length;
@@ -632,14 +719,14 @@ document.getElementById('shSave').addEventListener('click',async()=>{
   } else if(editType==='habit'){
     const h=habits.find(x=>x.id===editId);if(h)h.name=name;renderHabits();await push('habits');
   } else {
-    const t=tasks.find(x=>x.id===editId);if(t){t.text=name;t.time=time;}renderTasks();await push('tasks');
+    const t=tasks.find(x=>x.id===editId);if(t){t.text=name;t.time=time;}renderTasks();saveHistory();await push('tasks');
   }
   closeSheet();
 });
 document.getElementById('shDel').addEventListener('click',async()=>{
   if(editType==='cal'){calEvents=calEvents.filter(x=>x.id!==editId);renderCal();await pushCal();}
   else if(editType==='habit'){habits=habits.filter(x=>x.id!==editId);renderHabits();await push('habits');}
-  else{tasks=tasks.filter(x=>x.id!==editId);renderTasks();await push('tasks');}
+  else{tasks=tasks.filter(x=>x.id!==editId);renderTasks();saveHistory();await push('tasks');}
   closeSheet();
 });
 
@@ -697,6 +784,116 @@ renderPlaylists();
 
 // ── MUSIC (YouTube player - no JS state needed) ──
 function applyMusicRemote(m){}
+// ── HISTORY / PROGRESS GRAPHS ──
+function renderHistory(){
+  renderHistTaskBars();
+  renderHistHabits();
+  renderHistGym();
+  renderHistSummary();
+}
+function renderHistTaskBars(){
+  var bars=document.getElementById('histTaskBars');
+  if(!bars)return;
+  bars.innerHTML='';
+  var history=JSON.parse(localStorage.getItem('lo_history')||'[]');
+  while(history.length<7) history.unshift({pct:0,date:'—'});
+  var last7=history.slice(-7);
+  var dayL=['S','M','T','W','T','F','S'];
+  last7.forEach(function(p){
+    var dt=p.date&&p.date!=='—'?new Date(p.date):null;
+    var dayName=dt?dayL[dt.getDay()]:'—';
+    var pct=p.pct||0;
+    var wrap=document.createElement('div');
+    wrap.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;gap:4px';
+    var bar=document.createElement('div');
+    bar.style.cssText='width:100%;background:rgba(255,255,255,0.07);border-radius:4px 4px 0 0;height:70px;position:relative;overflow:hidden';
+    var fill=document.createElement('div');
+    fill.style.cssText='position:absolute;bottom:0;left:0;right:0;border-radius:4px 4px 0 0;transition:height 1s ease;background:linear-gradient(180deg,rgba(255,255,255,0.5),rgba(255,255,255,0.9))';
+    fill.style.height=pct+'%';
+    bar.appendChild(fill);
+    var pctLabel=document.createElement('div');
+    pctLabel.style.cssText='font-family:Space Mono,monospace;font-size:8px;color:rgba(255,255,255,0.4);position:absolute;top:4px;width:100%;text-align:center';
+    pctLabel.textContent=pct>0?pct+'%':'';
+    bar.appendChild(pctLabel);
+    var lbl=document.createElement('div');
+    lbl.style.cssText='font-family:Space Mono,monospace;font-size:9px;color:rgba(255,255,255,0.4)';
+    lbl.textContent=dayName;
+    wrap.appendChild(bar);wrap.appendChild(lbl);
+    bars.appendChild(wrap);
+  });
+}
+function renderHistHabits(){
+  var grid=document.getElementById('histHabitGrid');
+  if(!grid)return;
+  grid.innerHTML='';
+  habits.forEach(function(h){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:10px';
+    var name=document.createElement('div');
+    name.style.cssText='font-size:13px;font-weight:500;color:rgba(255,255,255,0.7);width:65px;flex-shrink:0';
+    name.textContent=h.name;
+    var dots=document.createElement('div');
+    dots.style.cssText='display:flex;gap:4px;flex:1;justify-content:space-between';
+    var dayL=['M','T','W','T','F','S','S'];
+    h.days.forEach(function(done,i){
+      var dot=document.createElement('div');
+      dot.style.cssText='flex:1;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:Space Mono,monospace;transition:all .2s;'
+        +(done?'background:rgba(255,255,255,0.85);color:#000;font-weight:700;':'background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.07)');
+      dot.textContent=dayL[i];
+      dots.appendChild(dot);
+    });
+    var doneCnt=h.days.filter(Boolean).length;
+    var pct=document.createElement('div');
+    pct.style.cssText='font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.4);width:32px;text-align:right;flex-shrink:0';
+    pct.textContent=Math.round(doneCnt/7*100)+'%';
+    row.appendChild(name);row.appendChild(dots);row.appendChild(pct);
+    grid.appendChild(row);
+  });
+  if(!habits.length) grid.innerHTML='<div style="font-family:Space Mono,monospace;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;padding:16px">Add habits to track them</div>';
+}
+function renderHistGym(){
+  var dots=document.getElementById('histGymDots');
+  if(!dots)return;dots.innerHTML='';
+  var dayL=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  gymDone.forEach(function(d,i){
+    var el=document.createElement('div');
+    el.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;gap:5px';
+    var circle=document.createElement('div');
+    circle.style.cssText='width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;'
+      +(d?'background:rgba(255,255,255,0.88);box-shadow:0 0 10px rgba(255,255,255,0.2);':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)');
+    circle.textContent=d?'💪':'·';
+    var lbl=document.createElement('div');
+    lbl.style.cssText='font-family:Space Mono,monospace;font-size:8px;color:rgba(255,255,255,0.35)';
+    lbl.textContent=dayL[i].slice(0,1);
+    el.appendChild(circle);el.appendChild(lbl);
+    dots.appendChild(el);
+  });
+}
+function renderHistSummary(){
+  var sum=document.getElementById('histSummary');
+  if(!sum)return;sum.innerHTML='';
+  var taskDone=tasks.filter(function(t){return t.done;}).length;
+  var taskTotal=tasks.length;
+  var taskPct=taskTotal?Math.round(taskDone/taskTotal*100):0;
+  var habTot=habits.length*7||1;
+  var habDone=habits.reduce(function(s,h){return s+h.days.filter(Boolean).length;},0);
+  var habPct=Math.round(habDone/habTot*100);
+  var gymCount=gymDone.filter(Boolean).length;
+  var items=[
+    {label:'Tasks completed today',value:taskDone+'/'+taskTotal+' ('+taskPct+'%)',good:taskPct>=70},
+    {label:'Habit consistency this week',value:habPct+'%',good:habPct>=60},
+    {label:'Gym sessions this week',value:gymCount+'/7 days',good:gymCount>=3},
+    {label:'Overall score',value:(Math.round(taskPct*0.5+habPct*0.35+gymCount/7*100*0.15))+'%',good:true},
+  ];
+  items.forEach(function(item){
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px';
+    row.innerHTML='<div style="font-size:13px;color:rgba(255,255,255,0.6)">'+item.label+'</div>'
+      +'<div style="font-family:Space Mono,monospace;font-size:12px;font-weight:600;color:'+(item.good?'rgba(255,255,255,0.9)':'rgba(255,180,50,0.8)')+'">'+item.value+'</div>';
+    sum.appendChild(row);
+  });
+}
+
 // ── START APP ──
 // ── VOICE GREETING ──
 function speak(text, rate=0.95, pitch=0.9) {
