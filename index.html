@@ -167,7 +167,7 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;min-h
         <div>
           <div class="step-t">Copy your database URL</div>
           <div class="step-d">At the top of the Realtime Database page, copy the URL that looks like this:</div>
-          <span class="code-pill">https://lifeos-xxxxx-default-rtdb.firebaseio.com</span>
+          <span class="code-pill">https://lifeos-xxxxx-default-rtdb.firebasedatabase.app</span>
         </div>
       </div>
     </div>
@@ -175,7 +175,7 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;min-h
     <div class="card">
       <div class="card-title">PASTE YOUR URL</div>
       <label class="inp-label">Firebase Database URL</label>
-      <input class="inp" id="fbInp" type="url" inputmode="url" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="https://your-project-default-rtdb.firebaseio.com">
+      <input class="inp" id="fbInp" type="url" inputmode="url" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="https://your-project-default-rtdb.firebasedatabase.app">
       <div class="err" id="fbErr">Please paste a valid https:// Firebase URL</div>
       <button class="big-btn" id="connectBtn" style="margin-top:14px">CONNECT & START →</button>
     </div>
@@ -287,19 +287,28 @@ function goApp(){document.getElementById('screenSetup').classList.remove('active
 document.getElementById('connectBtn').addEventListener('click',async function(){
   const url = document.getElementById('fbInp').value.trim().replace(/\/+$/,'');
   const err = document.getElementById('fbErr');
-  if(!url.startsWith('https://')||!url.includes('firebaseio')){err.classList.add('show');return;}
+  if(!url.startsWith('https://')||(!url.includes('firebaseio')&&!url.includes('firebasedatabase.app'))){err.classList.add('show');return;}
   err.classList.remove('show');
   this.textContent='TESTING CONNECTION...';
   // Test the connection
   try{
-    const r = await fetch(`${url}/ping.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:'"ok"'});
-    if(!r.ok)throw new Error('failed');
-    FBURL=url;localStorage.setItem('lo_fb',url);
+    // Try a simple GET — if Firebase is in test mode this works without auth
+    const r = await fetch(`${url}/.json`,{method:'GET'});
+    // Firebase returns 200 or null for empty db — both are fine
+    // Only hard fail if we get a network error (catch) or 401/403 (not test mode)
+    if(r.status===401||r.status===403){
+      err.textContent='Firebase rules are blocking access. Make sure you selected "Start in test mode".';
+      err.classList.add('show');
+      this.textContent='CONNECT & START →';
+      return;
+    }
+    FBURL=url;
+    localStorage.setItem('lo_fb',url);
     this.textContent='CONNECT & START →';
     startApp();
   }catch(e){
     this.textContent='CONNECT & START →';
-    err.textContent='Could not connect. Check the URL and make sure test mode is enabled.';
+    err.textContent='Network error. Check your internet connection and the URL.';
     err.classList.add('show');
   }
 });
