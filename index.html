@@ -361,7 +361,7 @@ document.getElementById('connectBtn').addEventListener('click',async function(){
 document.getElementById('fbInp').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('connectBtn').click();});
 
 // ── STATE ──
-let tasks=[],habits=[],gymDone=new Array(7).fill(false),calEvents=[];
+let tasks=[],habits=[],gymDone=new Array(7).fill(false),calEvents=[],nextCalId=1;
 let nextTId=1,nextHId=1,editType=null,editId=null,editHabit=false;
 const todayI=(new Date().getDay()+6)%7;
 const DL=['M','T','W','T','F','S','S'];
@@ -521,25 +521,15 @@ document.getElementById('aiMic').addEventListener('click',()=>{
 });
 
 // ── BUILT-IN CALENDAR ──
-let calEvents = [];
-let nextCalId = 1;
-
 function renderCal(){
   const l=document.getElementById('calList');l.innerHTML='';
   const sorted=[...calEvents].sort((a,b)=>a.time.localeCompare(b.time));
-  if(!sorted.length){
-    l.innerHTML='<div style="font-family:Space Mono,monospace;font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:24px">No events today.<br>Add one above.</div>';
-    return;
-  }
+  if(!sorted.length){l.innerHTML='<div style="font-family:Space Mono,monospace;font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:24px">No events. Add one above.</div>';return;}
   sorted.forEach(e=>{
     const d=document.createElement('div');d.className='cev';
-    d.innerHTML=`<div class="ctime">${e.time}</div><div class="ctitle" style="flex:1">${esc(e.title)}</div>
-      <button class="tbn" data-calEdit="${e.id}" style="flex-shrink:0">✎</button>
-      <button class="tbn" data-calDel="${e.id}" style="flex-shrink:0;color:rgba(248,113,113,0.7)">×</button>`;
+    d.innerHTML='<div class="ctime">'+e.time+'</div><div class="ctitle" style="flex:1">'+esc(e.title)+'</div><button class="tbn" data-calEdit="'+e.id+'" style="flex-shrink:0">✎</button><button class="tbn" data-calDel="'+e.id+'" style="flex-shrink:0;color:rgba(248,113,113,0.7)">×</button>';
     d.querySelector('[data-calEdit]').addEventListener('click',()=>openSheet('cal',e.id));
-    d.querySelector('[data-calDel]').addEventListener('click',async()=>{
-      calEvents=calEvents.filter(x=>x.id!==e.id);renderCal();await pushCal();
-    });
+    d.querySelector('[data-calDel]').addEventListener('click',async()=>{calEvents=calEvents.filter(x=>x.id!==e.id);renderCal();await pushCal();});
     l.appendChild(d);
   });
 }
