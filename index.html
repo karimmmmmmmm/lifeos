@@ -383,7 +383,7 @@ function setSync(live,txt){
 }
 async function push(section){
   if(!FBURL)return;
-  const map={tasks:()=>db.put('lifeos/tasks',tasks),habits:()=>db.put('lifeos/habits',habits),gym:()=>db.put('lifeos/gymDone',gymDone),music:()=>db.put('lifeos/music',{trackIndex:mTi,playing:mPlaying,progress:Math.round(mProg),at:Date.now()})};
+  const map={tasks:()=>db.put('lifeos/tasks',tasks),habits:()=>db.put('lifeos/habits',habits),gym:()=>db.put('lifeos/gymDone',gymDone),music:()=>Promise.resolve()};
   if(section&&map[section])await map[section]();
   else{await db.put('lifeos',{tasks,habits,gymDone,at:Date.now()});}
   setSync(true,'SYNCED '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}));
