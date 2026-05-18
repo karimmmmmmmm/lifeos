@@ -281,8 +281,9 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
       <div class="sec">Claude Assistant</div>
       <div class="ai-orb-row">
         <div class="ai-orb" id="aiOrb"></div>
-        <div style="flex:1"><div class="ai-name">CLAUDE AI</div><div class="ai-st"><div class="sdot live"></div><span id="aiStTxt">Online & Ready</span></div></div>
-        <button onclick="speak(greetingText())" style="background:none;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.5);font-size:16px;padding:7px 10px;cursor:pointer" title="Hear greeting">🔊</button>
+        <div style="flex:1"><div class="ai-name">GEMINI AI</div><div class="ai-st"><div class="sdot live"></div><span id="aiStTxt">Ready</span></div></div>
+        <button onclick="showMobKeyPrompt()" style="background:none;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.5);font-size:14px;padding:7px 10px;cursor:pointer" title="Set API key">🔑</button>
+        <button onclick="speak(greetingText())" style="background:none;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.5);font-size:16px;padding:7px 10px;cursor:pointer;margin-left:5px" title="Hear greeting">🔊</button>
       </div>
       <div class="chat-area" id="chatArea">
         <div class="amsg ai">Hello, boss. Ask me anything — planning, motivation, daily advice. I'm ready.</div>
@@ -347,16 +348,28 @@ document.getElementById('connectBtn').addEventListener('click',async function(){
   const url=document.getElementById('fbInp').value.trim().replace(/\/+$/,'');
   const err=document.getElementById('fbErr');
   if(!url.startsWith('https://')){err.style.display='block';err.textContent='Enter a valid https:// URL';return;}
-  this.textContent='TESTING...';err.style.display='none';
+  this.textContent='CONNECTING...';err.style.display='none';
+  // Save URL and launch immediately — don't block on network test on mobile
+  FBURL=url;
+  localStorage.setItem(FBKEY,url);
+  // Try to verify in background, but launch regardless
   try{
-    const r=await fetch(`${url}/.json`);
-    if(r.status===401||r.status===403)throw new Error('rules');
-    FBURL=url;localStorage.setItem(FBKEY,url);this.textContent='CONNECT & START →';startApp();
-  }catch(e){
-    this.textContent='CONNECT & START →';
-    document.getElementById('fbErr').textContent=e.message==='rules'?'Enable test mode in Firebase rules.':'Cannot reach Firebase. Check the URL.';
-    document.getElementById('fbErr').style.display='block';
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),5000);
+    const r=await fetch(url+'/.json',{signal:controller.signal});
+    clearTimeout(timeout);
+    if(r.status===401||r.status===403){
+      err.textContent='Access denied — enable test mode in Firebase rules.';
+      err.style.display='block';
+      this.textContent='CONNECT & START →';
+      return;
+    }
+  }catch(e2){
+    // Network timeout or CORS on mobile — proceed anyway, Firebase will still work
+    console.warn('Firebase test fetch failed, proceeding anyway:', e2.message);
   }
+  this.textContent='CONNECT & START →';
+  startApp();
 });
 document.getElementById('fbInp').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('connectBtn').click();});
 
@@ -466,6 +479,42 @@ function renderGym(){
 }
 document.getElementById('gymBtn').addEventListener('click',async()=>{gymDone[todayI]=!gymDone[todayI];renderGym();await push('gym');});
 
+// ── GEMINI KEY MANAGEMENT ──
+function showMobKeyPrompt(){
+  var sheet = document.getElementById('mobKeySheet');
+  if(sheet){ sheet.classList.remove('off'); return; }
+  sheet = document.createElement('div');
+  sheet.id = 'mobKeySheet';
+  sheet.className = 'sheet-bg';
+  var inner = document.createElement('div');
+  inner.className = 'sheet';
+  inner.style.paddingBottom = '50px';
+  inner.innerHTML = '<div class="sheet-hdl"></div>'
+    + '<div class="sheet-title">GEMINI API KEY</div>'
+    + '<div style="font-family:Space Mono,monospace;font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:14px;line-height:1.8">'
+    + 'Get a FREE key at aistudio.google.com<br>No credit card needed. 1500 requests/day free.</div>'
+    + '<div class="sf"><label class="sl">Paste your key</label>'
+    + '<input class="si" id="mobKeyInp" type="password" placeholder="AIza..." autocomplete="off"></div>'
+    + '<div class="sacts">'
+    + '<button class="sbn s" id="mobKeyCancel">CANCEL</button>'
+    + '<button class="sbn p" id="mobKeySave">SAVE KEY</button>'
+    + '</div>';
+  sheet.appendChild(inner);
+  document.body.appendChild(sheet);
+  sheet.onclick = function(e){ if(e.target===sheet) sheet.classList.add('off'); };
+  document.getElementById('mobKeyCancel').onclick = function(){ sheet.classList.add('off'); };
+  document.getElementById('mobKeySave').onclick = saveMobKey;
+  var ki = document.getElementById('mobKeyInp');
+  if(ki){ ki.value = localStorage.getItem('lo_gemini_key')||''; setTimeout(function(){ ki.focus(); }, 80); }
+}
+function saveMobKey(){
+  var ki = document.getElementById('mobKeyInp');
+  if(!ki||!ki.value.trim()) return;
+  localStorage.setItem('lo_gemini_key', ki.value.trim());
+  document.getElementById('mobKeySheet').classList.add('off');
+  document.getElementById('aiStTxt').textContent = 'Gemini Connected';
+}
+
 // ── MUSIC (YouTube) ──
 
 // ── CLAUDE AI ──
@@ -478,34 +527,31 @@ async function sendAI(){
   isTyping=true;inp.value='';addMsg('user',txt);chatH.push({role:'user',content:txt});
   document.getElementById('aiStTxt').textContent='Thinking...';const td=addMsg('ai typing','...');
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    var GEMINI_KEY = localStorage.getItem('lo_gemini_key') || '';
+    if(!GEMINI_KEY) throw new Error('NO_KEY');
+    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY;
+    const history = chatH.map(function(m){ return {role: m.role==='assistant'?'model':'user', parts:[{text:m.content}]}; });
+    const res=await fetch(geminiUrl,{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:SYS,messages:chatH})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        system_instruction:{parts:[{text:SYS}]},
+        contents:[...history, {role:'user',parts:[{text:txt}]}]
+      })
     });
-    if(!res.ok){
-      const err=await res.text();
-      // If CORS blocked, show helpful message
-      if(res.status===0||err.includes('CORS')||err.includes('Failed to fetch')){
-        throw new Error('CORS');
-      }
-      throw new Error('HTTP '+res.status);
-    }
     const data=await res.json();
-    if(data.error)throw new Error(data.error.message);
-    const reply=data.content[0].text;
+    if(data.error)throw new Error(data.error.message||data.error.status);
+    const reply=data.candidates[0].content.parts[0].text;
     td.classList.remove('typing');td.textContent=reply;chatH.push({role:'assistant',content:reply});
   }catch(e){
-    if(e.message==='CORS'||e.message==='Failed to fetch'){
-      td.textContent='AI blocked by browser security when opening from a file. Host the app online (GitHub Pages) and it will work.';
-    } else {
-      td.textContent='AI error: '+(e.message||'unknown')+'. Try again.';
-    }
     td.classList.remove('typing');
+    if(e.message==='NO_KEY'){
+      td.textContent='Tap the key icon above to add your free Gemini key. Get one at aistudio.google.com';
+    } else if(e.message&&(e.message.indexOf('API_KEY')>-1||e.message.indexOf('400')>-1)){
+      td.textContent='Invalid API key. Get a free one at aistudio.google.com';
+    } else {
+      td.textContent='AI error: '+(e.message||'unknown')+'. Check your internet connection.';
+    }
     console.error('AI error:',e);
   }
   document.getElementById('aiStTxt').textContent='Online & Ready';isTyping=false;
@@ -715,7 +761,11 @@ async function startApp(){
   triggerGreeting();
 }
 
-if(FBURL){document.getElementById('setupWrap').style.display='none';document.getElementById('appWrap').classList.remove('hidden');startApp();}
+if(FBURL){
+  document.getElementById('setupWrap').style.display='none';
+  document.getElementById('appWrap').classList.remove('hidden');
+  startApp();
+}
 </script>
 </body>
 </html>
