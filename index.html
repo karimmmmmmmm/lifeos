@@ -296,8 +296,12 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
     <!-- CALENDAR -->
     <div class="pane" id="p-cal">
       <div class="sec">Today's Events</div>
-      <button class="cal-btn" id="calBtn">↻ SYNC GOOGLE CALENDAR</button>
-      <div id="calList" style="display:flex;flex-direction:column;gap:7px"><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--w4);text-align:center;padding:20px">Tap sync to load events</div></div>
+      <div class="add-row" style="margin-bottom:4px">
+        <input class="add-inp" id="calTitleInp" type="text" placeholder="Event name..." autocomplete="off">
+        <input class="time-inp" id="calTimeInp" type="time">
+        <button class="plus-btn" id="calAddBtn">+</button>
+      </div>
+      <div id="calList" style="display:flex;flex-direction:column;gap:7px"></div>
       <div class="cal-note" id="calNote"></div>
     </div>
   </div>
@@ -394,6 +398,11 @@ function applyRemote(d){
   if(d.habits){const s=JSON.stringify(d.habits);if(s!==JSON.stringify(habits)){habits=d.habits;nextHId=Math.max(0,...habits.map(h=>h.id||0))+1;renderHabits();ch=true;}}
   if(d.gymDone){const s=JSON.stringify(d.gymDone);if(s!==JSON.stringify(gymDone)){gymDone=d.gymDone;renderGym();ch=true;}}
   if(d.music){try{applyMusicRemote(d.music);}catch(e){}ch=true;}
+  if(d.calendar&&Array.isArray(d.calendar)){
+    calEvents=d.calendar;
+    nextCalId=Math.max(0,...calEvents.map(e=>e.id||0))+1;
+    renderCal();ch=true;
+  }
   if(ch)setSync(true,'LIVE');
 }
 
@@ -469,11 +478,36 @@ async function sendAI(){
   isTyping=true;inp.value='';addMsg('user',txt);chatH.push({role:'user',content:txt});
   document.getElementById('aiStTxt').textContent='Thinking...';const td=addMsg('ai typing','...');
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:SYS,messages:chatH})});
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:SYS,messages:chatH})
+    });
+    if(!res.ok){
+      const err=await res.text();
+      // If CORS blocked, show helpful message
+      if(res.status===0||err.includes('CORS')||err.includes('Failed to fetch')){
+        throw new Error('CORS');
+      }
+      throw new Error('HTTP '+res.status);
+    }
     const data=await res.json();
-    if(data.error){throw new Error(data.error.message);}
-    const reply=data.content[0].text;td.classList.remove('typing');td.textContent=reply;chatH.push({role:'assistant',content:reply});
-  }catch(e){td.textContent='AI unavailable from this device. This feature works best inside claude.ai. Error: '+(e.message||'unknown');td.classList.remove('typing');console.error('AI error:',e);}
+    if(data.error)throw new Error(data.error.message);
+    const reply=data.content[0].text;
+    td.classList.remove('typing');td.textContent=reply;chatH.push({role:'assistant',content:reply});
+  }catch(e){
+    if(e.message==='CORS'||e.message==='Failed to fetch'){
+      td.textContent='AI blocked by browser security when opening from a file. Host the app online (GitHub Pages) and it will work.';
+    } else {
+      td.textContent='AI error: '+(e.message||'unknown')+'. Try again.';
+    }
+    td.classList.remove('typing');
+    console.error('AI error:',e);
+  }
   document.getElementById('aiStTxt').textContent='Online & Ready';isTyping=false;
 }
 document.getElementById('aiSend').addEventListener('click',sendAI);
@@ -486,33 +520,42 @@ document.getElementById('aiMic').addEventListener('click',()=>{
   if(mic)setTimeout(()=>{mic=false;btn.classList.remove('on');orb.classList.remove('listening');btn.textContent='🎙';document.getElementById('aiStTxt').textContent='Online & Ready';},4000);
 });
 
-// ── CALENDAR ──
-let calSyncing=false;
-document.getElementById('calBtn').addEventListener('click',syncCal);
-async function syncCal(){
-  if(calSyncing)return;calSyncing=true;
-  const btn=document.getElementById('calBtn');btn.textContent='↻ SYNCING...';
-  try{
-    const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'}));
-    const s=new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0).toISOString();
-    const e=new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59).toISOString();
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:`Use Google Calendar MCP to list events between ${s} and ${e} Asia/Beirut. Return ONLY JSON array [{time(HH:MM),title,source:"gcal"}]. No markdown.`,messages:[{role:'user',content:'Get today calendar events as JSON array.'}],mcp_servers:[{type:'url',url:'https://calendarmcp.googleapis.com/mcp/v1',name:'google-calendar'}]})});
-    const data=await res.json();const tb=data.content&&data.content.find(b=>b.type==='text');if(!tb)throw 0;
-    const arr=JSON.parse(tb.text.trim().replace(/```json|```/g,'').trim());if(!Array.isArray(arr))throw 0;
-    calEvents=arr.sort((a,b)=>a.time.localeCompare(b.time));renderCal(true);
-    if(FBURL)await db.put('lifeos/calendar',calEvents);
-    document.getElementById('calNote').textContent=`✓ ${calEvents.length} events from Google Calendar`;
-  }catch{
-    document.getElementById('calList').innerHTML='<div style="font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Open claude.ai → Settings → Integrations → Connect Google Calendar</div>';
-    document.getElementById('calNote').textContent='';
-  }
-  btn.textContent='↻ SYNC GOOGLE CALENDAR';calSyncing=false;
-}
-function renderCal(live){
+// ── BUILT-IN CALENDAR ──
+let calEvents = [];
+let nextCalId = 1;
+
+function renderCal(){
   const l=document.getElementById('calList');l.innerHTML='';
-  if(!calEvents.length){l.innerHTML='<div style="font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">No events today</div>';return;}
-  calEvents.forEach(e=>{const d=document.createElement('div');d.className='cev';d.innerHTML=`<div class="ctime">${e.time}</div><div class="ctitle">${esc(e.title)}</div>${live?'<div class="csrc">GCAL</div>':''}`;l.appendChild(d);});
+  const sorted=[...calEvents].sort((a,b)=>a.time.localeCompare(b.time));
+  if(!sorted.length){
+    l.innerHTML='<div style="font-family:Space Mono,monospace;font-size:13px;color:rgba(255,255,255,0.3);text-align:center;padding:24px">No events today.<br>Add one above.</div>';
+    return;
+  }
+  sorted.forEach(e=>{
+    const d=document.createElement('div');d.className='cev';
+    d.innerHTML=`<div class="ctime">${e.time}</div><div class="ctitle" style="flex:1">${esc(e.title)}</div>
+      <button class="tbn" data-calEdit="${e.id}" style="flex-shrink:0">✎</button>
+      <button class="tbn" data-calDel="${e.id}" style="flex-shrink:0;color:rgba(248,113,113,0.7)">×</button>`;
+    d.querySelector('[data-calEdit]').addEventListener('click',()=>openSheet('cal',e.id));
+    d.querySelector('[data-calDel]').addEventListener('click',async()=>{
+      calEvents=calEvents.filter(x=>x.id!==e.id);renderCal();await pushCal();
+    });
+    l.appendChild(d);
+  });
 }
+async function pushCal(){
+  if(FBURL) await db.put('lifeos/calendar', calEvents);
+}
+document.getElementById('calAddBtn').addEventListener('click', async()=>{
+  const title=document.getElementById('calTitleInp').value.trim();
+  const time=document.getElementById('calTimeInp').value;
+  if(!title)return;
+  calEvents.push({id:nextCalId++, title, time:time||'--:--'});
+  document.getElementById('calTitleInp').value='';
+  document.getElementById('calTimeInp').value='';
+  renderCal(); await pushCal();
+});
+document.getElementById('calTitleInp').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('calAddBtn').click();});
 
 // ── DAILY BRIEFING ──
 function buildBriefing(){
@@ -528,10 +571,14 @@ function buildBriefing(){
 // ── EDIT SHEET ──
 function openSheet(type,id){
   editType=type;editId=id;
+  const isCal=type==='cal';
   const isHabit=type==='habit';
-  const item=isHabit?habits.find(x=>x.id===id):tasks.find(x=>x.id===id);
-  document.getElementById('shTitle').textContent=isHabit?'EDIT HABIT':'EDIT TASK';
-  document.getElementById('shName').value=item?item.name||item.text:'';
+  let item;
+  if(isCal) item=calEvents.find(x=>x.id===id);
+  else if(isHabit) item=habits.find(x=>x.id===id);
+  else item=tasks.find(x=>x.id===id);
+  document.getElementById('shTitle').textContent=isCal?'EDIT EVENT':isHabit?'EDIT HABIT':'EDIT TASK';
+  document.getElementById('shName').value=item?(item.title||item.name||item.text):'';
   document.getElementById('shTime').value=(!isHabit&&item)?item.time||'':'';
   document.getElementById('shTimeWrap').style.display=isHabit?'none':'block';
   document.getElementById('editSheet').classList.remove('off');
@@ -542,12 +589,20 @@ document.getElementById('shCancel').addEventListener('click',closeSheet);
 document.getElementById('editSheet').addEventListener('click',e=>{if(e.target===document.getElementById('editSheet'))closeSheet();});
 document.getElementById('shSave').addEventListener('click',async()=>{
   const name=document.getElementById('shName').value.trim();if(!name)return;
-  if(editType==='habit'){const h=habits.find(x=>x.id===editId);if(h)h.name=name;renderHabits();await push('habits');}
-  else{const t=tasks.find(x=>x.id===editId);if(t){t.text=name;t.time=document.getElementById('shTime').value;}renderTasks();await push('tasks');}
+  const time=document.getElementById('shTime').value;
+  if(editType==='cal'){
+    const e=calEvents.find(x=>x.id===editId);if(e){e.title=name;e.time=time||e.time;}
+    renderCal();await pushCal();
+  } else if(editType==='habit'){
+    const h=habits.find(x=>x.id===editId);if(h)h.name=name;renderHabits();await push('habits');
+  } else {
+    const t=tasks.find(x=>x.id===editId);if(t){t.text=name;t.time=time;}renderTasks();await push('tasks');
+  }
   closeSheet();
 });
 document.getElementById('shDel').addEventListener('click',async()=>{
-  if(editType==='habit'){habits=habits.filter(x=>x.id!==editId);renderHabits();await push('habits');}
+  if(editType==='cal'){calEvents=calEvents.filter(x=>x.id!==editId);renderCal();await pushCal();}
+  else if(editType==='habit'){habits=habits.filter(x=>x.id!==editId);renderHabits();await push('habits');}
   else{tasks=tasks.filter(x=>x.id!==editId);renderTasks();await push('tasks');}
   closeSheet();
 });
@@ -573,9 +628,12 @@ function ytLoad(url) {
   if (!embedUrl) { container.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:11px;color:#f87171;text-align:center;padding:20px">Invalid YouTube URL. Try a video or playlist link.</div>'; return; }
   container.innerHTML = `<iframe src="${embedUrl}" style="width:100%;height:100%;border:none;border-radius:12px" allow="autoplay;encrypted-media" allowfullscreen></iframe>`;
 }
-document.getElementById('ytLoad').addEventListener('click', () => {
+document.getElementById('ytLoad').addEventListener('click', async() => {
   const url = document.getElementById('ytUrl').value.trim();
-  if (url) ytLoad(url);
+  if (!url) return;
+  ytLoad(url);
+  // Push URL to Firebase so TV picks it up
+  if(FBURL) await db.put('lifeos/music', {ytUrl: url, at: Date.now()});
 });
 document.getElementById('ytUrl').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('ytLoad').click(); });
 document.getElementById('plSave').addEventListener('click', () => {
@@ -594,7 +652,7 @@ function renderPlaylists() {
     const d = document.createElement('div');
     d.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;cursor:pointer';
     d.innerHTML = `<div style="flex:1;font-size:14px;color:rgba(255,255,255,0.85)">${p.name}</div><button style="background:none;border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:rgba(255,255,255,0.4);padding:5px 9px;font-family:Space Mono,monospace;font-size:10px;cursor:pointer">▶</button><button style="background:none;border:none;color:rgba(248,113,113,0.6);font-size:16px;cursor:pointer;padding:2px 4px">×</button>`;
-    d.querySelector('button:first-of-type').addEventListener('click', e => { e.stopPropagation(); document.getElementById('ytUrl').value = p.url; ytLoad(p.url); });
+    d.querySelector('button:first-of-type').addEventListener('click', async e => { e.stopPropagation(); document.getElementById('ytUrl').value = p.url; ytLoad(p.url); if(FBURL) await db.put('lifeos/music', {ytUrl: p.url, at: Date.now()}); });
     d.querySelector('button:last-of-type').addEventListener('click', e => { e.stopPropagation(); savedPlaylists.splice(i, 1); localStorage.setItem('lo_playlists', JSON.stringify(savedPlaylists)); renderPlaylists(); });
     l.appendChild(d);
   });
@@ -651,13 +709,17 @@ async function startApp(){
     if(data.habits){habits=data.habits;nextHId=Math.max(0,...habits.map(h=>h.id||0))+1;}else{habits=JSON.parse(JSON.stringify(HDEF));nextHId=6;}
     gymDone=data.gymDone||new Array(7).fill(false);
     if(data.music)applyMusicRemote(data.music);
+    if(data.calendar&&Array.isArray(data.calendar)){
+      calEvents=data.calendar;
+      nextCalId=Math.max(0,...calEvents.map(e=>e.id||0))+1;
+    }
     if(data.calendar&&Array.isArray(data.calendar)){calEvents=data.calendar;renderCal(true);document.getElementById('calNote').textContent=`${calEvents.length} events (last sync)`;}
   }else{
     tasks=JSON.parse(JSON.stringify(TDEF));nextTId=6;
     habits=JSON.parse(JSON.stringify(HDEF));nextHId=6;
     await push();
   }
-  renderTasks();renderHabits();renderGym();buildBriefing();
+  renderTasks();renderHabits();renderGym();renderCal();buildBriefing();
   setSync(true,'LIVE');
   db.poll('lifeos',applyRemote,2000);
   triggerGreeting();
