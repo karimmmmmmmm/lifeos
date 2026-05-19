@@ -186,6 +186,83 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
 .sbn.p{background:#fff;color:#000}
 .sbn.s{background:none;border:1px solid var(--b2);color:var(--w3)}
 .sbn.d{background:none;border:1px solid rgba(248,113,113,0.28);color:rgba(248,113,113,0.8)}
+
+/* ═══ LIGHT MODE (6am - 6pm) ═══ */
+body.light-mode{
+  background:#f0f0f0;
+  color:#0a0a0a;
+}
+body.light-mode .card{
+  background:rgba(255,255,255,0.85);
+  border-color:rgba(0,0,0,0.08);
+  color:#0a0a0a;
+}
+body.light-mode .card::before{
+  background:linear-gradient(135deg,rgba(255,255,255,0.9) 0%,transparent 60%);
+}
+body.light-mode .grid-bg{
+  display:none;
+}
+body.light-mode .hdr{
+  background:linear-gradient(180deg,rgba(240,240,240,1) 0%,rgba(240,240,240,0.8) 100%);
+}
+body.light-mode .hdr-logo{color:#0a0a0a;text-shadow:none}
+body.light-mode .stitle,.sec{color:rgba(0,0,0,0.4)}
+body.light-mode .titem,.hrow,.gym-card,.music-card,.ai-orb-row,.chat-area,.cev,.brief-card{
+  background:rgba(255,255,255,0.9);
+  border-color:rgba(0,0,0,0.08);
+  color:#0a0a0a;
+}
+body.light-mode .ttxt,.ctitle,.ai-name,.gym-st,.brief-text{color:#111}
+body.light-mode .ttm,.ctime,.trka,.ai-st,.gym-sk,.cal-note{color:rgba(0,0,0,0.4)}
+body.light-mode .add-inp,.time-inp,.ai-inp-box,.si{
+  background:rgba(0,0,0,0.05);
+  border-color:rgba(0,0,0,0.15);
+  color:#0a0a0a;
+}
+body.light-mode .add-inp::placeholder,.ai-inp-box::placeholder{color:rgba(0,0,0,0.35)}
+body.light-mode .plus-btn{background:#0a0a0a;color:#fff}
+body.light-mode .ai-send{background:#0a0a0a;color:#fff}
+body.light-mode .chk{border-color:rgba(0,0,0,0.25)}
+body.light-mode .chk.on{background:#0a0a0a;border-color:#0a0a0a;color:#fff}
+body.light-mode .hd{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.4)}
+body.light-mode .hd.on{background:rgba(0,0,0,0.85);color:#fff}
+body.light-mode .bni{color:rgba(0,0,0,0.35)}
+body.light-mode .bni.on{color:#0a0a0a}
+body.light-mode .bnav{background:rgba(240,240,240,0.95);border-color:rgba(0,0,0,0.1)}
+body.light-mode .sdot{background:rgba(0,0,0,0.3)}
+body.light-mode .sdot.live{background:#16a34a}
+body.light-mode .sync-pill{background:rgba(255,255,255,0.8);border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.5)}
+body.light-mode .tbn{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.4)}
+body.light-mode .gwd,.sdot2{background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.12);color:rgba(0,0,0,0.4)}
+body.light-mode .gwd.on,.sdot2.on{background:rgba(0,0,0,0.85);color:#fff;border-color:transparent}
+body.light-mode .gym-btn{background:#0a0a0a;color:#fff}
+body.light-mode .gym-btn.rest{background:rgba(0,0,0,0.08);color:rgba(0,0,0,0.5)}
+body.light-mode .amsg.ai{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.08);color:#111}
+body.light-mode .amsg.user{background:rgba(0,0,0,0.85);color:#fff;border-color:transparent}
+body.light-mode .cal-filter-btn{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.4)}
+body.light-mode .cal-filter-btn.active{background:rgba(0,0,0,0.85);color:#fff;border-color:transparent}
+body.light-mode .sheet{background:#f8f8f8;border-color:rgba(0,0,0,0.1)}
+body.light-mode .si{background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.15);color:#0a0a0a}
+body.light-mode .sbn.s{border-color:rgba(0,0,0,0.15);color:rgba(0,0,0,0.5)}
+body.light-mode .sbn.p{background:#0a0a0a;color:#fff}
+body.light-mode .prog-row{color:rgba(0,0,0,0.4)}
+body.light-mode .pbar{background:rgba(0,0,0,0.08)}
+body.light-mode .pfill{background:linear-gradient(90deg,rgba(0,0,0,0.5),rgba(0,0,0,0.85))}
+body.light-mode .m-art{background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.1)}
+body.light-mode .mqi{border-color:transparent}
+body.light-mode .mqi.on{background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.1)}
+body.light-mode .mqi-t{color:#111}
+body.light-mode .mqi-a{color:rgba(0,0,0,0.4)}
+body.light-mode .ytUrl{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.1);color:#0a0a0a}
+body.light-mode .brief-label{color:rgba(0,0,0,0.4)}
+body.light-mode .hist-bar{background:rgba(0,0,0,0.07)}
+body.light-mode .hist-bar-fill{background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.8))}
+body.light-mode .hist-lbl{color:rgba(0,0,0,0.4)}
+body.light-mode .theme-toggle{background:rgba(0,0,0,0.85);color:#fff}
+
+/* THEME TOGGLE */
+.theme-toggle{position:fixed;top:60px;right:16px;z-index:200;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:100px;padding:6px 14px;font-family:Orbitron,monospace;font-size:8px;letter-spacing:.15em;color:rgba(255,255,255,0.6);cursor:pointer;backdrop-filter:blur(10px);transition:all .3s}
 </style>
 </head>
 <body>
@@ -212,6 +289,7 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
 
 <!-- MAIN APP -->
 <div class="app hidden" id="appWrap">
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">☀️ DAY</button>
   <div class="hdr">
     <div class="hdr-logo">KAIROS</div>
     <div class="sync-pill"><div class="sdot" id="sdot"></div><span id="stxt">CONNECTING</span></div>
@@ -255,28 +333,45 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
         <button class="gym-btn" id="gymBtn">LOG TODAY'S WORKOUT</button>
       </div>
     </div>
-    <!-- MUSIC -->
-    <div class="pane" id="p-music">
-      <div class="sec">YouTube Music Player</div>
-      <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px">
-        <div style="font-size:15px;color:var(--w2);line-height:1.5">Paste any YouTube video or playlist URL below to play it on your dashboard.</div>
-        <div style="display:flex;gap:8px">
-          <input id="ytUrl" type="url" placeholder="https://youtube.com/watch?v=... or playlist" style="flex:1;background:var(--bg3);border:1px solid var(--b2);border-radius:12px;padding:12px 13px;color:#fff;font-family:Space Mono,monospace;font-size:12px;outline:none;-webkit-appearance:none">
-          <button id="ytLoad" style="padding:12px 16px;background:#fff;border:none;border-radius:12px;font-family:Orbitron,monospace;font-size:9px;font-weight:700;color:#000;cursor:pointer;white-space:nowrap">PLAY</button>
+    <!-- WEATHER + NEWS -->
+    <div class="pane" id="p-weather">
+      <div class="sec">Beirut Weather</div>
+      <!-- Current conditions -->
+      <div style="background:var(--bg2);border:1px solid var(--b);border-radius:16px;overflow:hidden">
+        <canvas id="mobWxCanvas" style="width:100%;height:120px;display:block"></canvas>
+        <div style="padding:14px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:8px">
+            <div>
+              <span style="font-family:Orbitron,monospace;font-size:48px;font-weight:800;color:#fff;line-height:1" id="mobWxTemp">—</span>
+              <span style="font-size:20px;color:rgba(255,255,255,0.4)">°C</span>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.85)" id="mobWxCond">Loading...</div>
+              <div style="font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.35)" id="mobWxHL">—</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border-left:2px solid rgba(255,255,255,0.2);padding:8px 10px;border-radius:0 6px 6px 0;font-size:13px;color:rgba(255,255,255,0.65);font-style:italic;margin-bottom:10px" id="mobWxAdvice">Analyzing...</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border-top:1px solid rgba(255,255,255,0.07);padding-top:10px">
+            <div style="text-align:center"><div style="font-family:Space Mono,monospace;font-size:13px;font-weight:600;color:#fff" id="mobWxHum">—</div><div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Humid</div></div>
+            <div style="text-align:center"><div style="font-family:Space Mono,monospace;font-size:13px;font-weight:600;color:#fff" id="mobWxWind">—</div><div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Wind</div></div>
+            <div style="text-align:center"><div style="font-family:Space Mono,monospace;font-size:13px;font-weight:600;color:#fff" id="mobWxSR">—</div><div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Rise</div></div>
+            <div style="text-align:center"><div style="font-family:Space Mono,monospace;font-size:13px;font-weight:600;color:#fff" id="mobWxSS">—</div><div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Set</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px" id="mobWxFc"></div>
         </div>
-        <div id="ytPlayer" style="border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center">
-          <div style="font-family:Space Mono,monospace;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">Paste a YouTube URL above and tap PLAY</div>
-        </div>
-        <div style="font-family:Space Mono,monospace;font-size:9px;color:var(--w4);text-align:center;line-height:1.6">Works with any YouTube video or playlist.<br>Audio plays through your device speakers.</div>
       </div>
+      <!-- YouTube sync to TV -->
       <div style="background:var(--bg2);border:1px solid var(--b);border-radius:14px;padding:14px">
-        <div style="font-family:Orbitron,monospace;font-size:9px;letter-spacing:.15em;color:var(--w4);margin-bottom:10px">SAVED PLAYLISTS</div>
-        <div id="savedPlaylists" style="display:flex;flex-direction:column;gap:6px"></div>
-        <div style="display:flex;gap:7px;margin-top:10px">
-          <input id="plName" type="text" placeholder="Playlist name..." style="flex:1;background:var(--bg3);border:1px solid var(--b);border-radius:10px;padding:10px 12px;color:#fff;font-family:Rajdhani,sans-serif;font-size:14px;outline:none">
-          <button id="plSave" style="padding:10px 14px;background:var(--bg3);border:1px solid var(--b2);border-radius:10px;font-family:Orbitron,monospace;font-size:8px;color:var(--w3);cursor:pointer">SAVE</button>
+        <div style="font-family:Orbitron,monospace;font-size:9px;letter-spacing:.15em;color:rgba(255,255,255,0.35);margin-bottom:10px">SEND MUSIC TO TV</div>
+        <div style="display:flex;gap:8px">
+          <input id="ytSyncUrl" type="url" placeholder="Paste YouTube URL to sync to TV..." style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 13px;color:#fff;font-family:Space Mono,monospace;font-size:11px;outline:none;-webkit-appearance:none">
+          <button id="ytSyncBtn" style="padding:11px 14px;background:#fff;border:none;border-radius:10px;font-family:Orbitron,monospace;font-size:8px;font-weight:700;color:#000;cursor:pointer;white-space:nowrap">SYNC TV</button>
         </div>
+        <div style="font-family:Space Mono,monospace;font-size:9px;color:rgba(255,255,255,0.25);margin-top:7px;text-align:center">Video opens on TV dashboard. Audio on TV speakers.</div>
       </div>
+      <!-- News -->
+      <div class="sec">Intelligence Feed</div>
+      <div style="display:flex;flex-direction:column;gap:7px" id="mobNewsList"></div>
     </div>
     <!-- AI -->
     <div class="pane" id="p-ai">
@@ -358,7 +453,7 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
     <button class="bni on" data-p="tasks"><div class="bni-ico">☑️</div><div class="bni-lbl">Tasks</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="habits"><div class="bni-ico">🔁</div><div class="bni-lbl">Habits</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="gym"><div class="bni-ico">🏋️</div><div class="bni-lbl">Gym</div><div class="bni-dot"></div></button>
-    <button class="bni" data-p="music"><div class="bni-ico">🎵</div><div class="bni-lbl">Music</div><div class="bni-dot"></div></button>
+    <button class="bni" data-p="weather"><div class="bni-ico">🌤️</div><div class="bni-lbl">Weather</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="history"><div class="bni-ico">📊</div><div class="bni-lbl">History</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="cal"><div class="bni-ico">📅</div><div class="bni-lbl">Cal</div><div class="bni-dot"></div></button>
   </div>
@@ -437,6 +532,7 @@ document.querySelectorAll('.bni').forEach(function(b){
     b.classList.add('on');
     document.getElementById('p-'+b.dataset.p).classList.add('on');
     if(b.dataset.p==='history') renderHistory();
+    if(b.dataset.p==='weather'){setTimeout(function(){fetchMobWeather();renderMobNews();},50);}
   });
 });
 
@@ -577,7 +673,7 @@ async function sendAI(){
   try{
     var GEMINI_KEY = localStorage.getItem('lo_gemini_key') || '';
     if(!GEMINI_KEY) throw new Error('NO_KEY');
-    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=' + GEMINI_KEY;
+    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY;
     const history = chatH.map(function(m){ return {role: m.role==='assistant'?'model':'user', parts:[{text:m.content}]}; });
     const res=await fetch(geminiUrl,{
       method:'POST',
@@ -621,6 +717,7 @@ function renderCal(){
   var now=new Date();
   var todayStr=now.toDateString();
   var tomorrowStr=new Date(now.getTime()+86400000).toDateString();
+  var nowM=now.getHours()*60+now.getMinutes();
   var sorted=calEvents.slice().sort(function(a,b){
     var da=a.date||todayStr,db=b.date||todayStr;
     return da!==db?new Date(da)-new Date(db):a.time.localeCompare(b.time);
@@ -639,12 +736,31 @@ function renderCal(){
   }
   filtered.forEach(function(e){
     var d=document.createElement('div');d.className='cev';
+    // Check if event is past (today only)
+    var evDate=e.date||todayStr;
+    var isPast=false;
+    if(evDate===todayStr&&e.time!=='--:--'){
+      var et=e.time.split(':').map(Number);
+      isPast=(et[0]*60+et[1])<nowM;
+    }
+    var isDone=e.done||false;
+    d.style.opacity=isPast||isDone?'0.5':'1';
     var dateLabel='';
-    if(e.date&&e.date!==todayStr){
-      var dt=new Date(e.date);
+    if(evDate!==todayStr){
+      var dt=new Date(evDate);
       dateLabel='<div class="csrc" style="font-size:9px">'+dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</div>';
     }
-    d.innerHTML='<div class="ctime">'+e.time+'</div><div class="ctitle" style="flex:1">'+esc(e.title)+'</div>'+dateLabel+'<button class="tbn" data-calEdit="'+e.id+'" style="flex-shrink:0">✎</button><button class="tbn" data-calDel="'+e.id+'" style="flex-shrink:0;color:rgba(248,113,113,0.7)">×</button>';
+    // Checkmark button
+    var chkStyle='width:28px;height:28px;border-radius:50%;border:1.5px solid '+(isDone?'transparent':'rgba(255,255,255,0.2)')+';background:'+(isDone?'rgba(255,255,255,0.85)':'none')+';color:'+(isDone?'#000':'rgba(255,255,255,0.3)')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .2s';
+    d.innerHTML='<div class="ctime" style="opacity:'+(isPast?'0.5':'1')+'">'+e.time+'</div>'
+      +'<div class="ctitle" style="flex:1;'+(isDone?'text-decoration:line-through;':'')+'">'+esc(e.title)+'</div>'
+      +dateLabel
+      +'<button data-calChk="'+e.id+'" style="'+chkStyle+'">'+(isDone?'✓':'')+'</button>'
+      +'<button class="tbn" data-calEdit="'+e.id+'" style="flex-shrink:0">✎</button>'
+      +'<button class="tbn" data-calDel="'+e.id+'" style="flex-shrink:0;color:rgba(248,113,113,0.7)">×</button>';
+    d.querySelector('[data-calChk]').addEventListener('click',async function(){
+      e.done=!e.done; renderCal(); await pushCal();
+    });
     d.querySelector('[data-calEdit]').addEventListener('click',function(){openSheet('cal',e.id);});
     d.querySelector('[data-calDel]').addEventListener('click',async function(){calEvents=calEvents.filter(function(x){return x.id!==e.id;});renderCal();await pushCal();});
     l.appendChild(d);
@@ -737,264 +853,28 @@ document.getElementById('shDel').addEventListener('click',async()=>{
   closeSheet();
 });
 
-// ── YOUTUBE PLAYER ──
-let savedPlaylists = JSON.parse(localStorage.getItem('lo_playlists') || '[]');
-function ytGetEmbedUrl(url) {
-  try {
-    const u = new URL(url);
-    // Playlist
-    const listId = u.searchParams.get('list');
-    const videoId = u.searchParams.get('v') || (u.pathname.includes('/') ? u.pathname.split('/').pop() : null);
-    if (listId) return `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1`;
-    if (videoId && videoId.length > 3) return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-    // youtu.be short links
-    if (u.hostname === 'youtu.be') return `https://www.youtube.com/embed${u.pathname}?autoplay=1`;
-  } catch(e) {}
-  return null;
-}
-function ytLoad(url) {
-  const embedUrl = ytGetEmbedUrl(url);
-  const container = document.getElementById('ytPlayer');
-  if (!embedUrl) { container.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:11px;color:#f87171;text-align:center;padding:20px">Invalid YouTube URL. Try a video or playlist link.</div>'; return; }
-  container.innerHTML = `<iframe src="${embedUrl}" style="width:100%;height:100%;border:none;border-radius:12px" allow="autoplay;encrypted-media" allowfullscreen></iframe>`;
-}
-document.getElementById('ytLoad').addEventListener('click', async() => {
-  const url = document.getElementById('ytUrl').value.trim();
-  if (!url) return;
-  ytLoad(url);
-  // Push URL to Firebase so TV picks it up
-  if(FBURL) await db.put('lifeos/music', {ytUrl: url, at: Date.now()});
-});
-document.getElementById('ytUrl').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('ytLoad').click(); });
-document.getElementById('plSave').addEventListener('click', () => {
-  const url = document.getElementById('ytUrl').value.trim();
-  const name = document.getElementById('plName').value.trim() || 'Playlist ' + (savedPlaylists.length + 1);
-  if (!url) return;
-  savedPlaylists.push({ name, url });
-  localStorage.setItem('lo_playlists', JSON.stringify(savedPlaylists));
-  document.getElementById('plName').value = '';
-  renderPlaylists();
-});
-function renderPlaylists() {
-  const l = document.getElementById('savedPlaylists'); l.innerHTML = '';
-  if (!savedPlaylists.length) { l.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.25);text-align:center;padding:8px">No saved playlists yet</div>'; return; }
-  savedPlaylists.forEach((p, i) => {
-    const d = document.createElement('div');
-    d.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:10px;cursor:pointer';
-    d.innerHTML = `<div style="flex:1;font-size:14px;color:rgba(255,255,255,0.85)">${p.name}</div><button style="background:none;border:1px solid rgba(255,255,255,0.1);border-radius:7px;color:rgba(255,255,255,0.4);padding:5px 9px;font-family:Space Mono,monospace;font-size:10px;cursor:pointer">▶</button><button style="background:none;border:none;color:rgba(248,113,113,0.6);font-size:16px;cursor:pointer;padding:2px 4px">×</button>`;
-    d.querySelector('button:first-of-type').addEventListener('click', async e => { e.stopPropagation(); document.getElementById('ytUrl').value = p.url; ytLoad(p.url); if(FBURL) await db.put('lifeos/music', {ytUrl: p.url, at: Date.now()}); });
-    d.querySelector('button:last-of-type').addEventListener('click', e => { e.stopPropagation(); savedPlaylists.splice(i, 1); localStorage.setItem('lo_playlists', JSON.stringify(savedPlaylists)); renderPlaylists(); });
-    l.appendChild(d);
-  });
-}
-renderPlaylists();
 
-// ── MUSIC (YouTube player - no JS state needed) ──
-function applyMusicRemote(m){}
-// ── HISTORY / PROGRESS GRAPHS ──
-function renderHistory(){
-  renderHistTaskBars();
-  renderHistHabits();
-  renderHistGym();
-  renderHistSummary();
+// ── AUTO THEME (6am light / 6pm dark) ──
+function applyTheme(){
+  var stored = localStorage.getItem('lo_theme');
+  var h = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'})).getHours();
+  var shouldLight = stored ? stored==='light' : (h>=6&&h<18);
+  var btn = document.getElementById('themeToggle');
+  if(shouldLight){
+    document.body.classList.add('light-mode');
+    if(btn){btn.textContent='🌙 NIGHT';btn.style.color='rgba(0,0,0,0.4)';btn.style.borderColor='rgba(0,0,0,0.1)';btn.style.background='rgba(0,0,0,0.05)';}
+  } else {
+    document.body.classList.remove('light-mode');
+    if(btn){btn.textContent='☀️ DAY';btn.style.color='rgba(255,255,255,0.45)';btn.style.borderColor='rgba(255,255,255,0.14)';btn.style.background='rgba(255,255,255,0.06)';}
+  }
 }
-function renderHistTaskBars(){
-  var bars=document.getElementById('histTaskBars');
-  if(!bars)return;
-  bars.innerHTML='';
-  var history=JSON.parse(localStorage.getItem('lo_history')||'[]');
-  while(history.length<7) history.unshift({pct:0,date:'—'});
-  var last7=history.slice(-7);
-  var dayL=['S','M','T','W','T','F','S'];
-  last7.forEach(function(p){
-    var dt=p.date&&p.date!=='—'?new Date(p.date):null;
-    var dayName=dt?dayL[dt.getDay()]:'—';
-    var pct=p.pct||0;
-    var wrap=document.createElement('div');
-    wrap.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;gap:4px';
-    var bar=document.createElement('div');
-    bar.style.cssText='width:100%;background:rgba(255,255,255,0.07);border-radius:4px 4px 0 0;height:70px;position:relative;overflow:hidden';
-    var fill=document.createElement('div');
-    fill.style.cssText='position:absolute;bottom:0;left:0;right:0;border-radius:4px 4px 0 0;transition:height 1s ease;background:linear-gradient(180deg,rgba(255,255,255,0.5),rgba(255,255,255,0.9))';
-    fill.style.height=pct+'%';
-    bar.appendChild(fill);
-    var pctLabel=document.createElement('div');
-    pctLabel.style.cssText='font-family:Space Mono,monospace;font-size:8px;color:rgba(255,255,255,0.4);position:absolute;top:4px;width:100%;text-align:center';
-    pctLabel.textContent=pct>0?pct+'%':'';
-    bar.appendChild(pctLabel);
-    var lbl=document.createElement('div');
-    lbl.style.cssText='font-family:Space Mono,monospace;font-size:9px;color:rgba(255,255,255,0.4)';
-    lbl.textContent=dayName;
-    wrap.appendChild(bar);wrap.appendChild(lbl);
-    bars.appendChild(wrap);
-  });
+function toggleTheme(){
+  var isLight = document.body.classList.contains('light-mode');
+  localStorage.setItem('lo_theme',isLight?'dark':'light');
+  applyTheme();
 }
-function renderHistHabits(){
-  var grid=document.getElementById('histHabitGrid');
-  if(!grid)return;
-  grid.innerHTML='';
-  habits.forEach(function(h){
-    var row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:10px';
-    var name=document.createElement('div');
-    name.style.cssText='font-size:13px;font-weight:500;color:rgba(255,255,255,0.7);width:65px;flex-shrink:0';
-    name.textContent=h.name;
-    var dots=document.createElement('div');
-    dots.style.cssText='display:flex;gap:4px;flex:1;justify-content:space-between';
-    var dayL=['M','T','W','T','F','S','S'];
-    h.days.forEach(function(done,i){
-      var dot=document.createElement('div');
-      dot.style.cssText='flex:1;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:Space Mono,monospace;transition:all .2s;'
-        +(done?'background:rgba(255,255,255,0.85);color:#000;font-weight:700;':'background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.07)');
-      dot.textContent=dayL[i];
-      dots.appendChild(dot);
-    });
-    var doneCnt=h.days.filter(Boolean).length;
-    var pct=document.createElement('div');
-    pct.style.cssText='font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.4);width:32px;text-align:right;flex-shrink:0';
-    pct.textContent=Math.round(doneCnt/7*100)+'%';
-    row.appendChild(name);row.appendChild(dots);row.appendChild(pct);
-    grid.appendChild(row);
-  });
-  if(!habits.length) grid.innerHTML='<div style="font-family:Space Mono,monospace;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;padding:16px">Add habits to track them</div>';
-}
-function renderHistGym(){
-  var dots=document.getElementById('histGymDots');
-  if(!dots)return;dots.innerHTML='';
-  var dayL=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  gymDone.forEach(function(d,i){
-    var el=document.createElement('div');
-    el.style.cssText='flex:1;display:flex;flex-direction:column;align-items:center;gap:5px';
-    var circle=document.createElement('div');
-    circle.style.cssText='width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;'
-      +(d?'background:rgba(255,255,255,0.88);box-shadow:0 0 10px rgba(255,255,255,0.2);':'background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)');
-    circle.textContent=d?'💪':'·';
-    var lbl=document.createElement('div');
-    lbl.style.cssText='font-family:Space Mono,monospace;font-size:8px;color:rgba(255,255,255,0.35)';
-    lbl.textContent=dayL[i].slice(0,1);
-    el.appendChild(circle);el.appendChild(lbl);
-    dots.appendChild(el);
-  });
-}
-function renderHistSummary(){
-  var sum=document.getElementById('histSummary');
-  if(!sum)return;sum.innerHTML='';
-  var taskDone=tasks.filter(function(t){return t.done;}).length;
-  var taskTotal=tasks.length;
-  var taskPct=taskTotal?Math.round(taskDone/taskTotal*100):0;
-  var habTot=habits.length*7||1;
-  var habDone=habits.reduce(function(s,h){return s+h.days.filter(Boolean).length;},0);
-  var habPct=Math.round(habDone/habTot*100);
-  var gymCount=gymDone.filter(Boolean).length;
-  var items=[
-    {label:'Tasks completed today',value:taskDone+'/'+taskTotal+' ('+taskPct+'%)',good:taskPct>=70},
-    {label:'Habit consistency this week',value:habPct+'%',good:habPct>=60},
-    {label:'Gym sessions this week',value:gymCount+'/7 days',good:gymCount>=3},
-    {label:'Overall score',value:(Math.round(taskPct*0.5+habPct*0.35+gymCount/7*100*0.15))+'%',good:true},
-  ];
-  items.forEach(function(item){
-    var row=document.createElement('div');
-    row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px';
-    row.innerHTML='<div style="font-size:13px;color:rgba(255,255,255,0.6)">'+item.label+'</div>'
-      +'<div style="font-family:Space Mono,monospace;font-size:12px;font-weight:600;color:'+(item.good?'rgba(255,255,255,0.9)':'rgba(255,180,50,0.8)')+'">'+item.value+'</div>';
-    sum.appendChild(row);
-  });
-}
-
-// ── SOUND DESIGN ──
-var audioCtxMob = null;
-function playSound(type){
-  try{
-    if(!audioCtxMob) audioCtxMob = new(window.AudioContext||window.webkitAudioContext)();
-    var ctx=audioCtxMob, osc=ctx.createOscillator(), gain=ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    if(type==='complete'){
-      osc.type='sine';
-      osc.frequency.setValueAtTime(523,ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(784,ctx.currentTime+0.15);
-      osc.frequency.linearRampToValueAtTime(1047,ctx.currentTime+0.3);
-      gain.gain.setValueAtTime(0.15,ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0,ctx.currentTime+0.5);
-      osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.5);
-    } else if(type==='check'){
-      osc.type='sine'; osc.frequency.setValueAtTime(880,ctx.currentTime);
-      gain.gain.setValueAtTime(0.08,ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0,ctx.currentTime+0.12);
-      osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.12);
-    } else if(type==='prayer'){
-      osc.type='sine'; osc.frequency.setValueAtTime(440,ctx.currentTime);
-      gain.gain.setValueAtTime(0.12,ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0,ctx.currentTime+1.0);
-      osc.start(ctx.currentTime); osc.stop(ctx.currentTime+1.0);
-    }
-  }catch(e){}
-}
-
-// ── MISSION COMPLETE (mobile) ──
-var missionFiredMob = false;
-function checkMissionMob(){
-  if(!tasks.length) return;
-  var allDone = tasks.every(function(t){return t.done;});
-  if(allDone && !missionFiredMob){
-    missionFiredMob = true;
-    playSound('complete');
-    // Flash briefing
-    var b = document.getElementById('briefText');
-    if(b){ b.textContent = '✦ All objectives complete. Outstanding work today, boss.'; b.style.color='#fff'; }
-    setTimeout(function(){ buildBriefing(); },5000);
-  } else if(!allDone){ missionFiredMob = false; }
-}
-
-// ── AI MEMORY (mobile) ──
-var aiMemoryMob = JSON.parse(localStorage.getItem('lo_ai_memory')||'[]');
-function getMemoryContextMob(){
-  if(!aiMemoryMob.length) return '';
-  return 'Memory: '+aiMemoryMob.slice(-5).map(function(m){return m.key+': '+m.value;}).join('. ')+'.';
-}
-
-// ── PRAYER REMINDERS (mobile) ──
-var prayerFiredMob = {};
-function checkPrayerMob(){
-  // uses prayerData from Firebase sync - check calEvents for prayer approach
-  // Simple: check system time against known Beirut prayers loaded from Firebase
-}
-
-// ── SAVE HISTORY ON TASK CHANGE ──
-function saveHistoryMob(){
-  var today=new Date().toDateString();
-  var done=tasks.filter(function(t){return t.done;}).length;
-  var pct=tasks.length?Math.round(done/tasks.length*100):0;
-  var history=JSON.parse(localStorage.getItem('lo_history')||'[]');
-  var ex=history.find(function(p){return p.date===today;});
-  if(ex) ex.pct=pct; else history.push({date:today,pct:pct});
-  if(history.length>30) history=history.slice(-30);
-  localStorage.setItem('lo_history',JSON.stringify(history));
-  // Save memory
-  aiMemoryMob = aiMemoryMob.filter(function(m){return m.key!=='last_task_pct';});
-  aiMemoryMob.push({key:'last_task_pct',value:pct+'%',date:today});
-  if(aiMemoryMob.length>20) aiMemoryMob=aiMemoryMob.slice(-20);
-  localStorage.setItem('lo_ai_memory',JSON.stringify(aiMemoryMob));
-}
-
-// ── MOOD (mobile) ──
-var currentMoodMob = localStorage.getItem('lo_mood')||'focused';
-function setMoodMob(mood){
-  currentMoodMob=mood;
-  localStorage.setItem('lo_mood',mood);
-  document.querySelectorAll('.mood-btn-mob').forEach(function(b){
-    b.style.opacity=b.dataset.m===mood?'1':'0.5';
-    b.style.background=b.dataset.m===mood?'rgba(255,255,255,0.1)':'none';
-  });
-  // Sync to Firebase
-  if(FBURL) db.put('lifeos/mood',mood);
-}
-// Init mood buttons
-setTimeout(function(){
-  document.querySelectorAll('.mood-btn-mob').forEach(function(b){
-    b.style.opacity=b.dataset.m===currentMoodMob?'1':'0.5';
-    b.style.background=b.dataset.m===currentMoodMob?'rgba(255,255,255,0.1)':'none';
-  });
-},100);
+applyTheme();
+setInterval(applyTheme,60000);
 
 // ── START APP ──
 // ── VOICE GREETING ──
