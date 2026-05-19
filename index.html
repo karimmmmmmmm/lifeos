@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#000000">
-<title>Life OS</title>
+<title>Kairos</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Rajdhani:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -193,7 +193,7 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
 <!-- SETUP -->
 <div id="setupWrap">
   <div class="setup">
-    <div><div class="logo">LIFE OS</div><div class="tagline">MOBILE CONTROL — BEIRUT</div></div>
+    <div><div class="logo">KAIROS</div><div class="tagline">MISSION CONTROL — BEIRUT</div></div>
     <div class="scard">
       <div class="scard-title">FIREBASE SETUP</div>
       <div class="step"><div class="stepn">1</div><div><div class="stept">Create a free Firebase project</div><div class="stepd">Go to the link below → Add project → name it "lifeos"</div><a href="https://console.firebase.google.com" target="_blank" class="code">console.firebase.google.com ↗</a></div></div>
@@ -213,7 +213,7 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
 <!-- MAIN APP -->
 <div class="app hidden" id="appWrap">
   <div class="hdr">
-    <div class="hdr-logo">LIFE OS</div>
+    <div class="hdr-logo">KAIROS</div>
     <div class="sync-pill"><div class="sdot" id="sdot"></div><span id="stxt">CONNECTING</span></div>
   </div>
   <div class="panes">
@@ -280,7 +280,14 @@ body{background:var(--bg);color:var(--w);font-family:'Rajdhani',sans-serif;heigh
     </div>
     <!-- AI -->
     <div class="pane" id="p-ai">
-      <div class="sec">Claude Assistant</div>
+      <div class="sec">Kairos AI</div>
+      <div style="display:flex;gap:6px;justify-content:center;padding:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;flex-shrink:0">
+        <button class="mood-btn-mob active" data-m="focused" onclick="setMoodMob('focused')" style="background:none;border:none;font-size:22px;cursor:pointer;opacity:0.5;padding:4px 6px;border-radius:8px;transition:all .2s" title="Focused">🎯</button>
+        <button class="mood-btn-mob" data-m="motivated" onclick="setMoodMob('motivated')" style="background:none;border:none;font-size:22px;cursor:pointer;opacity:0.5;padding:4px 6px;border-radius:8px;transition:all .2s" title="Motivated">⚡</button>
+        <button class="mood-btn-mob" data-m="calm" onclick="setMoodMob('calm')" style="background:none;border:none;font-size:22px;cursor:pointer;opacity:0.5;padding:4px 6px;border-radius:8px;transition:all .2s" title="Calm">🌊</button>
+        <button class="mood-btn-mob" data-m="tired" onclick="setMoodMob('tired')" style="background:none;border:none;font-size:22px;cursor:pointer;opacity:0.5;padding:4px 6px;border-radius:8px;transition:all .2s" title="Tired">😴</button>
+        <button class="mood-btn-mob" data-m="stressed" onclick="setMoodMob('stressed')" style="background:none;border:none;font-size:22px;cursor:pointer;opacity:0.5;padding:4px 6px;border-radius:8px;transition:all .2s" title="Stressed">🔥</button>
+      </div>
       <div class="ai-orb-row">
         <div class="ai-orb" id="aiOrb"></div>
         <div style="flex:1"><div class="ai-name">GEMINI AI</div><div class="ai-st"><div class="sdot live"></div><span id="aiStTxt">Ready</span></div></div>
@@ -559,7 +566,7 @@ function saveMobKey(){
 // ── MUSIC (YouTube) ──
 
 // ── CLAUDE AI ──
-const SYS=`You are a calm, sharp, motivating AI assistant for a dashboard called Life OS. User is in Beirut — call them "boss". 2-4 sentences max. Direct, calm, intelligent.`;
+const SYS=`You are a calm, sharp, motivating AI assistant for a dashboard called Kairos. User is in Beirut — call them "boss". 2-4 sentences max. Direct, calm, intelligent.`;
 let chatH=[{role:'user',content:'Introduce yourself.'},{role:'assistant',content:'Hello, boss. Claude-powered — calm, sharp, ready. Ask anything: planning, motivation, or a push. I\'m here.'}];
 let isTyping=false;
 function addMsg(role,text){const a=document.getElementById('chatArea');const d=document.createElement('div');d.className='amsg '+role;d.textContent=text;a.appendChild(d);a.scrollTop=a.scrollHeight;return d;}
@@ -576,7 +583,7 @@ async function sendAI(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        system_instruction:{parts:[{text:SYS}]},
+        system_instruction:{parts:[{text:buildSYS()}]},
         contents:[...history, {role:'user',parts:[{text:txt}]}]
       })
     });
@@ -893,6 +900,101 @@ function renderHistSummary(){
     sum.appendChild(row);
   });
 }
+
+// ── SOUND DESIGN ──
+var audioCtxMob = null;
+function playSound(type){
+  try{
+    if(!audioCtxMob) audioCtxMob = new(window.AudioContext||window.webkitAudioContext)();
+    var ctx=audioCtxMob, osc=ctx.createOscillator(), gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    if(type==='complete'){
+      osc.type='sine';
+      osc.frequency.setValueAtTime(523,ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(784,ctx.currentTime+0.15);
+      osc.frequency.linearRampToValueAtTime(1047,ctx.currentTime+0.3);
+      gain.gain.setValueAtTime(0.15,ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0,ctx.currentTime+0.5);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.5);
+    } else if(type==='check'){
+      osc.type='sine'; osc.frequency.setValueAtTime(880,ctx.currentTime);
+      gain.gain.setValueAtTime(0.08,ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0,ctx.currentTime+0.12);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.12);
+    } else if(type==='prayer'){
+      osc.type='sine'; osc.frequency.setValueAtTime(440,ctx.currentTime);
+      gain.gain.setValueAtTime(0.12,ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0,ctx.currentTime+1.0);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime+1.0);
+    }
+  }catch(e){}
+}
+
+// ── MISSION COMPLETE (mobile) ──
+var missionFiredMob = false;
+function checkMissionMob(){
+  if(!tasks.length) return;
+  var allDone = tasks.every(function(t){return t.done;});
+  if(allDone && !missionFiredMob){
+    missionFiredMob = true;
+    playSound('complete');
+    // Flash briefing
+    var b = document.getElementById('briefText');
+    if(b){ b.textContent = '✦ All objectives complete. Outstanding work today, boss.'; b.style.color='#fff'; }
+    setTimeout(function(){ buildBriefing(); },5000);
+  } else if(!allDone){ missionFiredMob = false; }
+}
+
+// ── AI MEMORY (mobile) ──
+var aiMemoryMob = JSON.parse(localStorage.getItem('lo_ai_memory')||'[]');
+function getMemoryContextMob(){
+  if(!aiMemoryMob.length) return '';
+  return 'Memory: '+aiMemoryMob.slice(-5).map(function(m){return m.key+': '+m.value;}).join('. ')+'.';
+}
+
+// ── PRAYER REMINDERS (mobile) ──
+var prayerFiredMob = {};
+function checkPrayerMob(){
+  // uses prayerData from Firebase sync - check calEvents for prayer approach
+  // Simple: check system time against known Beirut prayers loaded from Firebase
+}
+
+// ── SAVE HISTORY ON TASK CHANGE ──
+function saveHistoryMob(){
+  var today=new Date().toDateString();
+  var done=tasks.filter(function(t){return t.done;}).length;
+  var pct=tasks.length?Math.round(done/tasks.length*100):0;
+  var history=JSON.parse(localStorage.getItem('lo_history')||'[]');
+  var ex=history.find(function(p){return p.date===today;});
+  if(ex) ex.pct=pct; else history.push({date:today,pct:pct});
+  if(history.length>30) history=history.slice(-30);
+  localStorage.setItem('lo_history',JSON.stringify(history));
+  // Save memory
+  aiMemoryMob = aiMemoryMob.filter(function(m){return m.key!=='last_task_pct';});
+  aiMemoryMob.push({key:'last_task_pct',value:pct+'%',date:today});
+  if(aiMemoryMob.length>20) aiMemoryMob=aiMemoryMob.slice(-20);
+  localStorage.setItem('lo_ai_memory',JSON.stringify(aiMemoryMob));
+}
+
+// ── MOOD (mobile) ──
+var currentMoodMob = localStorage.getItem('lo_mood')||'focused';
+function setMoodMob(mood){
+  currentMoodMob=mood;
+  localStorage.setItem('lo_mood',mood);
+  document.querySelectorAll('.mood-btn-mob').forEach(function(b){
+    b.style.opacity=b.dataset.m===mood?'1':'0.5';
+    b.style.background=b.dataset.m===mood?'rgba(255,255,255,0.1)':'none';
+  });
+  // Sync to Firebase
+  if(FBURL) db.put('lifeos/mood',mood);
+}
+// Init mood buttons
+setTimeout(function(){
+  document.querySelectorAll('.mood-btn-mob').forEach(function(b){
+    b.style.opacity=b.dataset.m===currentMoodMob?'1':'0.5';
+    b.style.background=b.dataset.m===currentMoodMob?'rgba(255,255,255,0.1)':'none';
+  });
+},100);
 
 // ── START APP ──
 // ── VOICE GREETING ──
