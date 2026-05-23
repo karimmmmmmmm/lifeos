@@ -196,6 +196,9 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
 .sbn.p{background:#fff;color:#000}
 .sbn.s{background:none;border:1px solid var(--b2);color:var(--w3)}
 .sbn.d{background:none;border:1px solid rgba(248,113,113,0.28);color:rgba(248,113,113,0.8)}
+
+.hist-filter{flex:1;padding:7px 4px;background:var(--bg2);border:1px solid var(--b);border-radius:8px;font-family:Orbitron,monospace;font-size:7px;letter-spacing:.1em;color:var(--w4);cursor:pointer;text-align:center;transition:all .2s}
+.hist-filter.active{background:rgba(255,255,255,0.08);border-color:var(--b2);color:var(--w)}
 </style>
 </head>
 <body>
@@ -256,20 +259,21 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
     </div>
     <!-- HISTORY -->
     <div class="pane" id="p-history">
-      <div class="sec">7-Day Task Completion</div>
-      <div class="hist-section">
-        <div class="hist-bars" id="histTaskBars"></div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="hist-filter active" data-hf="week">Week</button>
+        <button class="hist-filter" data-hf="month">Month</button>
+        <button class="hist-filter" data-hf="year">Year</button>
+        <button class="hist-filter" data-hf="all">All Time</button>
       </div>
+      <div id="histSummaryCard" style="background:var(--bg2);border:1px solid var(--b2);border-radius:14px;padding:14px;flex-shrink:0"></div>
+      <div class="sec">Task Completion</div>
+      <div class="hist-section"><div class="hist-bars" id="histTaskBars"></div></div>
       <div class="sec">Habit Consistency</div>
-      <div class="hist-section">
-        <div id="histHabitGrid"></div>
-      </div>
-      <div class="sec">Gym This Week</div>
-      <div class="hist-section">
-        <div style="display:flex;gap:6px" id="histGymDots"></div>
-      </div>
-      <div class="sec">Weekly Summary</div>
-      <div style="display:flex;flex-direction:column;gap:6px" id="histSummary"></div>
+      <div class="hist-section"><div id="histHabitGrid"></div></div>
+      <div class="sec">Gym Sessions</div>
+      <div class="hist-section"><div style="display:flex;gap:5px;flex-wrap:wrap" id="histGymDots"></div></div>
+      <div class="sec">Weekly Snapshots</div>
+      <div id="histWeeklyList" style="display:flex;flex-direction:column;gap:7px"></div>
     </div>
     <!-- AI -->
     <div class="pane" id="p-ai">
@@ -302,7 +306,7 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
         <div style="font-family:Rajdhani,sans-serif;font-size:13px;color:var(--w3);text-align:center;margin-top:8px;font-style:italic;min-height:18px" id="moodLine"></div>
       </div>
       <div class="chat-area" id="chatArea">
-        <div class="amsg ai">Hello, boss. I am Kairos — your personal AI assistant. Ask me anything.</div>
+        <div class="amsg ai">Kairos online. What do you need, boss?</div>
       </div>
       <div id="micInterim" style="font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.4);min-height:14px;text-align:center;font-style:italic;padding:2px 0"></div>
       <div class="ai-inp-row">
@@ -412,7 +416,7 @@ document.querySelectorAll('.bni').forEach(b=>{
     document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
     b.classList.add('on');
     document.getElementById('p-'+b.dataset.p).classList.add('on');
-    if(b.dataset.p==='history') renderHistory();
+    if(b.dataset.p==='history'){renderHistory();}
   });
 });
 
@@ -533,8 +537,207 @@ document.getElementById('gymBtn').addEventListener('click',async()=>{gymDone[tod
 
 // ── HISTORY (the good version) ──
 function renderHistory(){
-  renderHistBars();renderHistHabits();renderHistGym();renderHistSummary();
+  renderHistBars();
+  renderHistHabits();
+  renderHistGym();
+  renderHistSummaryCard();
+  renderWeeklySnapshots();
 }
+
+// ── HISTORY FILTER ──
+var histFilter='week';
+document.querySelectorAll('.hist-filter').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.hist-filter').forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active');
+    histFilter=b.dataset.hf;
+    renderHistory();
+  });
+});
+
+function getFilteredHistory(){
+  var all=JSON.parse(localStorage.getItem('lo_history')||'[]');
+  var now=new Date();
+  if(histFilter==='week'){
+    var weekAgo=new Date(now-7*86400000);
+    return all.filter(function(p){return new Date(p.date)>=weekAgo;});
+  }
+  if(histFilter==='month'){
+    var monthAgo=new Date(now-30*86400000);
+    return all.filter(function(p){return new Date(p.date)>=monthAgo;});
+  }
+  if(histFilter==='year'){
+    var yearAgo=new Date(now-365*86400000);
+    return all.filter(function(p){return new Date(p.date)>=yearAgo;});
+  }
+  return all; // all time
+}
+
+function renderHistBars(){
+  var bars=document.getElementById('histTaskBars');if(!bars)return;bars.innerHTML='';
+  var hist=getFilteredHistory();
+  // Cap display at 14 for readability
+  var show=hist.slice(-14);
+  if(!show.length){bars.innerHTML='<div style="font-size:11px;color:var(--w4);text-align:center;padding:12px">No data yet</div>';return;}
+  var dayL=['S','M','T','W','T','F','S'];
+  show.forEach(function(p){
+    var dt=p.date?new Date(p.date):null;
+    var pct=p.pct||0;
+    var col=pct>=80?'rgba(255,255,255,0.88)':pct>=50?'rgba(255,255,255,0.55)':'rgba(255,255,255,0.25)';
+    var wrap=document.createElement('div');wrap.className='hist-bwrap';
+    wrap.innerHTML='<div class="hist-bar"><div class="hist-fill" style="height:'+pct+'%;background:'+col+'"></div>'+(pct>0?'<div class="hist-pct">'+pct+'%</div>':'')+'</div><div class="hist-lbl">'+(dt?dayL[dt.getDay()]:'—')+'</div>';
+    bars.appendChild(wrap);
+  });
+}
+
+function renderHistHabits(){
+  var grid=document.getElementById('histHabitGrid');if(!grid)return;grid.innerHTML='';
+  if(!habits.length){grid.innerHTML='<div style="font-size:11px;color:var(--w4);text-align:center;padding:12px">No habits tracked yet</div>';return;}
+  var dayL=['M','T','W','T','F','S','S'];
+  habits.forEach(function(h){
+    var row=document.createElement('div');row.className='habit-grid-row';
+    var nameEl=document.createElement('div');nameEl.style.cssText='font-size:12px;font-weight:500;color:var(--w3);width:58px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';nameEl.textContent=h.name;
+    row.appendChild(nameEl);
+    h.days.forEach(function(done,i){
+      var dot=document.createElement('div');dot.className='habit-day-dot';
+      dot.style.cssText='background:'+(done?'rgba(255,255,255,0.88)':'rgba(255,255,255,0.05)')+';border:1px solid '+(done?'transparent':'rgba(255,255,255,0.08)')+';color:'+(done?'#000':'rgba(255,255,255,0.25)')+';font-family:Space Mono,monospace;font-size:8px;font-weight:'+(done?700:400);
+      dot.textContent=dayL[i];
+      row.appendChild(dot);
+    });
+    var pctEl=document.createElement('div');pctEl.style.cssText='font-family:Space Mono,monospace;font-size:9px;color:var(--w4);width:28px;text-align:right;flex-shrink:0';
+    pctEl.textContent=Math.round(h.days.filter(Boolean).length/7*100)+'%';
+    row.appendChild(pctEl);
+    grid.appendChild(row);
+  });
+}
+
+function renderHistGym(){
+  var dots=document.getElementById('histGymDots');if(!dots)return;dots.innerHTML='';
+  var dayL=['M','T','W','T','F','S','S'];
+  gymDone.forEach(function(d,i){
+    var el=document.createElement('div');el.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px;min-width:36px';
+    el.innerHTML='<div style="width:34px;height:34px;border-radius:50%;background:'+(d?'rgba(255,255,255,0.88)':'rgba(255,255,255,0.05)')+';border:1px solid '+(d?'transparent':'rgba(255,255,255,0.1)')+';display:flex;align-items:center;justify-content:center;font-size:14px">'+(d?'💪':'·')+'</div><div style="font-family:Space Mono,monospace;font-size:8px;color:var(--w4)">'+dayL[i]+'</div>';
+    dots.appendChild(el);
+  });
+  // Also show weekly gym count from snapshots
+  var snaps=JSON.parse(localStorage.getItem('lo_weekly_snaps')||'[]');
+  if(snaps.length){
+    var gymHistory=document.createElement('div');
+    gymHistory.style.cssText='margin-top:8px;display:flex;flex-wrap:wrap;gap:5px';
+    snaps.slice(-8).forEach(function(s){
+      var chip=document.createElement('div');
+      chip.style.cssText='font-family:Space Mono,monospace;font-size:9px;padding:4px 8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:6px;color:var(--w3)';
+      chip.textContent='W/'+s.weekNum+': '+s.gymSessions+'/7 gym';
+      gymHistory.appendChild(chip);
+    });
+    dots.appendChild(gymHistory);
+  }
+}
+
+function renderHistSummaryCard(){
+  var card=document.getElementById('histSummaryCard');if(!card)return;
+  var hist=getFilteredHistory();
+  var label=histFilter==='week'?'This Week':histFilter==='month'?'This Month':histFilter==='year'?'This Year':'All Time';
+  var avgPct=hist.length?Math.round(hist.reduce(function(s,p){return s+(p.pct||0);},0)/hist.length):0;
+  var best=hist.reduce(function(b,p){return (p.pct||0)>(b.pct||0)?p:b;},{pct:0});
+  var gymSess=gymDone.filter(Boolean).length;
+  var habRate=habits.length?Math.round(habits.reduce(function(s,h){return s+h.days.filter(Boolean).length;},0)/(habits.length*7)*100):0;
+  var score=Math.round((avgPct*0.5)+(habRate*0.35)+(gymSess/7*100*0.15));
+  card.innerHTML=
+    '<div style="font-family:Orbitron,monospace;font-size:9px;letter-spacing:.18em;color:var(--w4);margin-bottom:10px">'+label.toUpperCase()+' SUMMARY</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div style="text-align:center;padding:8px;background:var(--bg3);border-radius:10px"><div style="font-family:Space Mono,monospace;font-size:18px;font-weight:700;color:var(--w)">'+avgPct+'%</div><div style="font-size:9px;color:var(--w4);margin-top:2px">Avg Tasks</div></div>'
+    +'<div style="text-align:center;padding:8px;background:var(--bg3);border-radius:10px"><div style="font-family:Space Mono,monospace;font-size:18px;font-weight:700;color:var(--w)">'+habRate+'%</div><div style="font-size:9px;color:var(--w4);margin-top:2px">Habit Rate</div></div>'
+    +'<div style="text-align:center;padding:8px;background:var(--bg3);border-radius:10px"><div style="font-family:Space Mono,monospace;font-size:18px;font-weight:700;color:var(--w)">'+gymSess+'/7</div><div style="font-size:9px;color:var(--w4);margin-top:2px">Gym Days</div></div>'
+    +'<div style="text-align:center;padding:8px;background:var(--bg3);border-radius:10px"><div style="font-family:Space Mono,monospace;font-size:18px;font-weight:700;color:var(--w)">'+score+'%</div><div style="font-size:9px;color:var(--w4);margin-top:2px">Overall Score</div></div>'
+    +'</div>'
+    +(best.pct>0?'<div style="margin-top:8px;font-family:Space Mono,monospace;font-size:9px;color:var(--w4);text-align:center">Best day: '+best.pct+'% — '+(best.date||'')+'</div>':'');
+}
+
+function renderWeeklySnapshots(){
+  var list=document.getElementById('histWeeklyList');if(!list)return;list.innerHTML='';
+  var snaps=JSON.parse(localStorage.getItem('lo_weekly_snaps')||'[]');
+  if(!snaps.length){list.innerHTML='<div style="font-size:12px;color:var(--w4);text-align:center;padding:16px">Weekly snapshots will appear here at the end of each week. Check back Monday.</div>';return;}
+  // Filter by selected period
+  var now=new Date();
+  var filtered=snaps.filter(function(s){
+    var d=new Date(s.weekEnd);
+    if(histFilter==='week') return (now-d)<7*86400000;
+    if(histFilter==='month') return (now-d)<30*86400000;
+    if(histFilter==='year') return (now-d)<365*86400000;
+    return true;
+  }).reverse(); // newest first
+  filtered.forEach(function(snap){
+    var el=document.createElement('div');
+    el.style.cssText='background:var(--bg2);border:1px solid var(--b);border-radius:13px;padding:13px';
+    var score=Math.round((snap.taskPct||0)*0.5+(snap.habitRate||0)*0.35+(((snap.gymSessions||0)/7)*100)*0.15);
+    var scoreColor=score>=80?'#4ade80':score>=60?'#fbbf24':'rgba(255,255,255,0.5)';
+    el.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<div style="font-family:Orbitron,monospace;font-size:9px;font-weight:700;color:var(--w);letter-spacing:.1em">Week of '+snap.weekStart+'</div>'
+      +'<div style="font-family:Space Mono,monospace;font-size:13px;font-weight:700;color:'+scoreColor+'">'+score+'%</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px">'
+      +'<div style="font-size:11px;color:var(--w3)">✅ Tasks<br><span style="font-weight:600;color:var(--w)">'+(snap.taskPct||0)+'%</span></div>'
+      +'<div style="font-size:11px;color:var(--w3)">🔁 Habits<br><span style="font-weight:600;color:var(--w)">'+(snap.habitRate||0)+'%</span></div>'
+      +'<div style="font-size:11px;color:var(--w3)">🏋️ Gym<br><span style="font-weight:600;color:var(--w)">'+(snap.gymSessions||0)+'/7</span></div>'
+      +'</div>'
+      +(snap.notes?'<div style="margin-top:7px;font-size:11px;color:var(--w4);font-style:italic">'+snap.notes+'</div>':'');
+    list.appendChild(el);
+  });
+}
+
+// ── WEEKLY SNAPSHOT SYSTEM ──
+// Saves a snapshot every Sunday night and on Monday morning
+function saveWeeklySnapshot(){
+  var now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'}));
+  var dayOfWeek=now.getDay(); // 0=Sun, 1=Mon
+  var snaps=JSON.parse(localStorage.getItem('lo_weekly_snaps')||'[]');
+  
+  // Get week number
+  var startOfYear=new Date(now.getFullYear(),0,1);
+  var weekNum=Math.ceil(((now-startOfYear)/86400000+startOfYear.getDay()+1)/7);
+  
+  // Check if we already saved this week
+  var alreadySaved=snaps.find(function(s){return s.weekNum===weekNum&&s.year===now.getFullYear();});
+  if(alreadySaved) return;
+  
+  // Calculate metrics
+  var hist=JSON.parse(localStorage.getItem('lo_history')||'[]');
+  var weekAgo=new Date(now-7*86400000);
+  var weekHist=hist.filter(function(p){return new Date(p.date)>=weekAgo;});
+  var avgTask=weekHist.length?Math.round(weekHist.reduce(function(s,p){return s+(p.pct||0);},0)/weekHist.length):0;
+  var habTotal=habits.length*7||1;
+  var habDone=habits.reduce(function(s,h){return s+h.days.filter(Boolean).length;},0);
+  var habRate=Math.round(habDone/habTotal*100);
+  var gymSess=gymDone.filter(Boolean).length;
+  
+  // Format dates
+  var monday=new Date(now);
+  monday.setDate(now.getDate()-((now.getDay()+6)%7));
+  var sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+  var fmt=function(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});};
+  
+  var snap={
+    weekNum:weekNum,year:now.getFullYear(),
+    weekStart:fmt(monday),weekEnd:fmt(sunday),
+    taskPct:avgTask,habitRate:habRate,gymSessions:gymSess,
+    savedAt:now.toISOString()
+  };
+  
+  snaps.push(snap);
+  if(snaps.length>104) snaps=snaps.slice(-104); // keep 2 years
+  localStorage.setItem('lo_weekly_snaps',JSON.stringify(snaps));
+  
+  // Also push to Firebase for TV access
+  if(FBURL) push('weeklySnaps',snaps);
+  
+  console.log('Weekly snapshot saved:', snap);
+}
+
+// Check for snapshot on load and every hour
+setTimeout(saveWeeklySnapshot, 3000);
+setInterval(saveWeeklySnapshot, 60*60*1000);
 function renderHistBars(){
   const bars=document.getElementById('histTaskBars');if(!bars)return;bars.innerHTML='';
   const hist=JSON.parse(localStorage.getItem('lo_history')||'[]');
@@ -705,14 +908,26 @@ async function sendAI(){
   if(chatH.length>30) chatH=chatH.slice(-30);
   document.getElementById('aiStTxt').textContent='Ready';
   isTyping=false;
-  // Speak response
+  // Pause mic while speaking
+  var wasMob=mobMic;
+  if(wasMob) stopMobMic();
   if(window.speechSynthesis){
     window.speechSynthesis.cancel();
-    var u=new SpeechSynthesisUtterance(reply.slice(0,200));
-    u.rate=0.92; u.pitch=0.95; u.volume=0.9;
+    var clean=reply.replace(/[*_`#~]/g,'').trim().slice(0,250);
+    var u=new SpeechSynthesisUtterance(clean);
+    u.rate=0.88; u.pitch=1.0; u.volume=1;
     var voices=window.speechSynthesis.getVoices();
-    var v=voices.find(function(v){return v.name.includes('Google')&&v.lang.startsWith('en');})||voices.find(function(v){return v.lang.startsWith('en-');})||null;
+    var v=voices.find(function(vx){return vx.name.includes('Google')&&vx.lang.startsWith('en');})||voices.find(function(vx){return vx.lang.startsWith('en-');})||null;
     if(v) u.voice=v;
+    u.onend=function(){
+      // Resume mic after speaking
+      if(wasMob&&!mobMic){
+        mobMic=true;
+        var btn=document.getElementById('aiMic');
+        if(btn){btn.textContent='🔴';btn.style.background='rgba(239,68,68,0.15)';}
+        startMobMic();
+      }
+    };
     window.speechSynthesis.speak(u);
   }
 }
@@ -920,6 +1135,15 @@ function kairosThink(input){
 
   // THANKS
   if(/thank|good job|well done|appreciate/.test(q)) return pick(['Happy to help, '+boss+'. Back to those '+n(pending)+' tasks.','I appreciate that. I perform best when you do.','Any time. That is what I am here for.']);
+
+  // ── EMOTIONAL RESPONSES ──
+  if(/excit|pump|hyped|ready|great day|amazing|motivated/.test(q)){
+    remember('last_mood_positive',now.toDateString());
+    return pick(['That energy — use it right now. '+n(pending)+' tasks are waiting.','Love to hear it, '+boss+'. What do you want to tackle first?','That is the mindset. Ride that wave.','Good. Use that feeling before it fades. First task?']);
+  }
+  if(/nervous|anxious|worried|scared/.test(q)){
+    return pick(['That means you care, '+boss+'. One breath. Then one task.','Nerves without direction is just anxiety. Pick one thing and go.','You have handled hard things before. Same here.']);
+  }
 
   // ADD shortcut
   if(q.startsWith('add ')){ var an=input.slice(4).trim(); if(an.length>1){tasks.push({id:nextTId++,text:an,time:'',done:false});renderTasks();push('tasks',tasks);return 'Added "'+an+'", '+boss+'.';} }
