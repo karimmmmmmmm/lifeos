@@ -9,7 +9,6 @@
 <title>Kairos</title>
 <script>
 // Force correct API key
-localStorage.setItem('lo_ai_key','AIzaSyCmMnMyVt9-2anAtwK7XNbpexZCzyUVHYE');
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Rajdhani:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
 <style>
@@ -305,6 +304,7 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
       <div class="chat-area" id="chatArea">
         <div class="amsg ai">Hello, boss. I am Kairos — your personal AI assistant. Ask me anything.</div>
       </div>
+      <div id="micInterim" style="font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.4);min-height:14px;text-align:center;font-style:italic;padding:2px 0"></div>
       <div class="ai-inp-row">
         <input class="ai-inp-box" id="aiInp" type="text" placeholder="Ask Kairos..." autocomplete="off">
         <button class="ai-send" id="aiSend">➔</button>
@@ -674,7 +674,7 @@ document.querySelectorAll('.mood-btn-mob').forEach(b=>b.classList.toggle('on',b.
 setTimeout(()=>{const ml=document.getElementById('moodLine');if(ml){const md=MOOD_DATA[currentMood];if(md)ml.textContent=md.brief;}},100);
 
 // ── AI (GEMINI v1) ──
-let AI_KEY=localStorage.getItem('lo_ai_key')||'AIzaSyCmMnMyVt9-2anAtwK7XNbpexZCzyUVHYE';
+let AI_KEY=localStorage.getItem('lo_ai_key')||'';
 let chatH=[],isTyping=false;
 function buildSYS(){
   const h=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'})).getHours();
@@ -690,70 +690,255 @@ function buildSYS(){
 }
 function addMsg(role,text){const a=document.getElementById('chatArea');const d=document.createElement('div');d.className='amsg '+role;d.textContent=text;a.appendChild(d);a.scrollTop=a.scrollHeight;return d;}
 async function sendAI(){
-  const inp=document.getElementById('aiInp'),txt=inp.value.trim();
-  if(!txt||isTyping)return;
-  isTyping=true;inp.value='';
+  var inp=document.getElementById('aiInp'), txt=inp.value.trim();
+  if(!txt||isTyping) return;
+  isTyping=true; inp.value='';
   addMsg('user',txt);
-  document.getElementById('aiStTxt').textContent='Processing...';
-  const td=addMsg('ai typing','...');
-  await new Promise(r=>setTimeout(r,500));
-  const reply=kairosThink(txt);
-  td.classList.remove('typing');td.textContent=reply;
+  document.getElementById('aiStTxt').textContent='Thinking...';
+  var td=addMsg('ai typing','...');
+  // Small delay for realism
+  await new Promise(function(r){setTimeout(r,400);});
+  var reply=kairosThink(txt);
+  td.classList.remove('typing'); td.textContent=reply;
   chatH.push({role:'user',parts:[{text:txt}]});
   chatH.push({role:'model',parts:[{text:reply}]});
-  if(chatH.length>20)chatH=chatH.slice(-20);
+  if(chatH.length>30) chatH=chatH.slice(-30);
   document.getElementById('aiStTxt').textContent='Ready';
   isTyping=false;
+  // Speak response
+  if(window.speechSynthesis){
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(reply.slice(0,200));
+    u.rate=0.92; u.pitch=0.95; u.volume=0.9;
+    var voices=window.speechSynthesis.getVoices();
+    var v=voices.find(function(v){return v.name.includes('Google')&&v.lang.startsWith('en');})||voices.find(function(v){return v.lang.startsWith('en-');})||null;
+    if(v) u.voice=v;
+    window.speechSynthesis.speak(u);
+  }
 }
 
 function kairosThink(input){
-  const q=input.toLowerCase().trim();
-  const lastReply=chatH.length?chatH[chatH.length-1].parts[0].text.toLowerCase():'';
-  const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'}));
-  const h=now.getHours(),m=now.getMinutes(),nowM=h*60+m;
-  const done=tasks.filter(t=>t.done).length,total=tasks.length,pending=total-done;
-  const pct=total?Math.round(done/total*100):0;
-  const gymToday=gymDone[todayI],streak=gymDone.filter(Boolean).length;
-  const habDone=habits.reduce((s,hh)=>s+(hh.days[todayI]?1:0),0);
-  const pendingList=tasks.filter(t=>!t.done);
-  const timeStr=h>=5&&h<12?'morning':h>=12&&h<17?'afternoon':h>=17&&h<21?'evening':'night';
-  const md=MOOD_DATA[currentMood];
-  if(/^(yes|yeah|yep|sure|ok|okay|do it|log it|please|yea)$/.test(q)){
-    if(/want me to log|not logged/.test(lastReply)){gymDone[todayI]=true;renderGym();push('gymDone',gymDone);return 'Logged. '+(streak+1)+'-day streak. Well done boss.';}
-    return 'Done boss.';
+  var q=input.toLowerCase().trim();
+  var lastReply=chatH.length?chatH[chatH.length-1].parts[0].text:'';
+  var now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'}));
+  var h=now.getHours(),m=now.getMinutes(),nowM=h*60+m;
+  var dayName=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()];
+  var done=tasks.filter(function(t){return t.done;}).length;
+  var total=tasks.length,pending=total-done,pct=total?Math.round(done/total*100):0;
+  var gymToday=gymDone[todayI],streak=gymDone.filter(Boolean).length;
+  var habDone=habits.reduce(function(s,hh){return s+(hh.days[todayI]?1:0);},0);
+  var habTotal=habits.length;
+  var pendingTasks=tasks.filter(function(t){return !t.done;});
+  var md=MOOD_DATA[currentMood];
+
+  function n(x){var w=['zero','one','two','three','four','five','six','seven','eight','nine','ten'];return x<=10?w[x]:String(x);}
+  function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+  function timeCtx(){if(h>=5&&h<9)return 'early morning';if(h>=9&&h<12)return 'morning';if(h>=12&&h<14)return 'midday';if(h>=14&&h<17)return 'afternoon';if(h>=17&&h<20)return 'evening';if(h>=20&&h<23)return 'late evening';return 'late night';}
+
+  // Memory
+  var mem=JSON.parse(localStorage.getItem('lo_kairos_mem')||'{}');
+  function remember(k,v){mem[k]=v;localStorage.setItem('lo_kairos_mem',JSON.stringify(mem));}
+  function recall(k){return mem[k]||null;}
+
+  // Learn name
+  var nm=input.match(/(?:my name is|call me|i am) ([A-Za-z]+)/i);
+  if(nm){remember('name',nm[1]);return 'Got it. I will call you '+nm[1]+' from now on.';}
+  var boss=recall('name')||'boss';
+
+  // YES/NO
+  if(/^(yes|yeah|yep|sure|ok|okay|do it|log it|please|yea|go ahead)$/.test(q)){
+    var lr=lastReply.toLowerCase();
+    if(/want me to log|log it/.test(lr)){gymDone[todayI]=true;renderGym();push('gymDone',gymDone);return pick(['Logged. '+n(streak+1)+' sessions this week — discipline stacks up, '+boss+'.','Workout saved. Keep showing up, '+boss+'.']);}
+    if(/add.*task/.test(lr)) return 'What is the task?';
+    if(/add.*habit/.test(lr)) return 'What habit should I track?';
+    return pick(['Done, '+boss+'.','On it.','Got it.']);
   }
-  if(/^(no|nah|nope|not now|cancel)$/.test(q)) return 'Got it boss.';
-  if(/^(hi|hello|hey|sup|yo|salam|morning|evening)/.test(q)){return ['Hey boss. '+timeStr+'. '+done+'/'+total+' tasks done.','Hello boss. '+pct+'% through today. Mood: '+(md?md.label:'focused')+'.','Online boss. '+pending+' tasks left.'][Math.floor(Math.random()*3)];}
-  if(/task|todo|mission/.test(q)){
-    if(/add|create|new/.test(q)){const name=input.replace(/add|create|new task|task/gi,'').trim();if(name.length>2){tasks.push({id:nextTId++,text:name,time:'',done:false});renderTasks();push('tasks',tasks);return 'Added "'+name+'" boss.';}return 'What should I add?';}
-    if(/list|show|left|remaining/.test(q)){if(!pendingList.length)return 'All tasks complete boss.';return 'Pending: '+pendingList.slice(0,3).map(t=>t.text+(t.time?' ('+t.time+')':'')).join(', ')+(pendingList.length>3?' +'+( pendingList.length-3)+' more.':'.');}
-    return done+'/'+total+' tasks done. '+pending+' remaining.';
+  if(/^(no|nah|nope|not now|cancel|never mind)$/.test(q)) return pick(['Alright. Let me know when you do.','No problem, '+boss+'.','Got it. Moving on.']);
+
+  // GREETING — time-aware
+  if(/^(hi|hello|hey|sup|yo|salam|marhaba|ahlan)/.test(q)){
+    var gr=h>=5&&h<12?pick(['Good morning, '+boss+'.','Morning, '+boss+'. Ready to go?','Rise and grind, '+boss+'.'])
+          :h>=12&&h<17?pick(['Good afternoon, '+boss+'.','Hey '+boss+', hope the morning was solid.','Afternoon, '+boss+'.'])
+          :h>=17&&h<21?pick(['Good evening, '+boss+'.','Hey '+boss+', how did the day treat you?','Evening, '+boss+'.'])
+          :pick(['Still up, '+boss+'?','Late night, '+boss+'. Hope it was a good day.','Night owl mode, '+boss+'.']);
+    var lines=[gr];
+    if(md) lines.push(md.label+' mode active.');
+    if(total>0&&pending>0) lines.push(n(pending)+' task'+(pending!==1?'s':'')+' still on the list.');
+    else if(total>0&&pending===0) lines.push('All tasks done today. Respect.');
+    if(gymToday) lines.push('Gym is logged. Consistent.');
+    lines.push(pick(['What are you working on right now?','How is the energy today?','Need a plan for the rest of the day?','Anything on your mind, '+boss+'?']));
+    return lines.join(' ');
   }
-  if(/gym|workout|exercise|train|lift/.test(q)){
-    if(/log|did|done|finished|went|just/.test(q)||q==='gym'){if(gymToday)return 'Already logged today boss.';gymDone[todayI]=true;renderGym();push('gymDone',gymDone);return 'Logged. '+(streak+1)+'-day streak. Well done boss.';}
-    if(gymToday)return 'Workout done. '+streak+'-day streak. Consistent.';
-    return 'Not logged yet. '+streak+' sessions this week. Want me to log it?';
+
+  // ADD TASK
+  if((/add/.test(q)&&/task|todo|reminder/.test(q))||/^add [a-z]/.test(q)){
+    var tName=input.replace(/add\s*(task|todo|reminder)?/gi,'').trim();
+    if(tName.length>1){tasks.push({id:nextTId++,text:tName,time:'',done:false});renderTasks();push('tasks',tasks);return pick(['"'+tName+'" added, '+boss+'.','Done — "'+tName+'" is on the board.','Added. '+n(tasks.length)+' tasks total now.']);}
+    return 'What task should I add?';
   }
-  if(/habit|routine/.test(q)){const list=habits.map(hh=>hh.name+': '+(hh.days[todayI]?'✓':'✗')).join(', ');return habDone+'/'+habits.length+' habits today. '+list;}
-  if(/score|progress|how am i|productivity/.test(q)){const s=Math.round(pct*0.5+(habDone/Math.max(habits.length,1)*100)*0.35+(gymToday?100:0)*0.15);return 'Score: '+s+'%. Tasks '+pct+'%, habits '+Math.round(habDone/Math.max(habits.length,1)*100)+'%, gym '+(gymToday?'done':'pending')+'.';}
-  if(/brief|summary|status|update|day/.test(q)){const parts=[done+'/'+total+' tasks',gymToday?'gym done':'gym pending',habDone+'/'+habits.length+' habits'];if(md)parts.unshift(md.label);return parts.join(' · ')+'.';}
-  if(/what should|what next|suggest|priority/.test(q)){const next=pendingList.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'))[0];if(next)return 'Next: "'+next.text+'"'+(next.time?' at '+next.time:'')+'. Go boss.';if(!gymToday)return 'Tasks done. Log your workout.';return 'All complete. Rest boss.';}
-  if(/motivat|inspire|push|pump|ready|hype/.test(q)){return ['One task at a time. Progress over perfection.','You completed '+done+' tasks. Keep that momentum.','Discipline is doing it even when you do not feel like it.','Small steps boss. Stack the wins.','Every habit logged is a vote for who you are becoming.'][Math.floor(Math.random()*5)];}
-  if(/tired|stressed|overwhelm|cannot|burnout/.test(q)){return 'One thing at a time boss. You already did '+done+' tasks. Pick the smallest next thing and just start.';}
-  if(/mood|feeling/.test(q)){return md?'Mood: '+md.label+'. '+md.brief:'Set your mood with the buttons above.';}
-  if(/thank|good job|well done|nice|great/.test(q)){return ['Just doing my job boss. Back to work.','Appreciated. '+pending+' tasks still waiting.','I perform best when you do too.'][Math.floor(Math.random()*3)];}
-  if(/who are you|what are you|your name/.test(q)){return 'I am Kairos. Your personal life OS. Tasks, habits, gym, schedule. No internet needed. Always here boss.';}
-  if(/joke|funny|laugh/.test(q)){return 'Why did the to-do list feel sad? Too many undone items. You have '+pending+' boss. Just saying.';}
-  if(/time/.test(q)){const hh=h%12||12,ap=h>=12?'PM':'AM';return 'It is '+hh+':'+(m<10?'0'+m:m)+' '+ap+' in Beirut.';}
-  if(q.startsWith('add ')){const n=input.slice(4).trim();if(n.length>1){tasks.push({id:nextTId++,text:n,time:'',done:false});renderTasks();push('tasks',tasks);return 'Added "'+n+'" boss.';}}
-  return ['Try: "brief", "tasks left", "log gym", "motivate me", "add [task]", "what next".','I track tasks, habits, gym. Ask anything boss.','Say "what next" and I will guide you.'][Math.floor(Math.random()*3)];
+
+  // ADD HABIT
+  if(/add habit|new habit|track habit/.test(q)){
+    var hName=input.replace(/add habit|new habit|track habit/gi,'').trim();
+    if(hName.length>1){habits.push({id:nextHId++,name:hName,days:new Array(7).fill(false)});renderHabits();push('habits',habits);return '"'+hName+'" added to your habits, '+boss+'.';}
+    return 'What habit should I track?';
+  }
+
+  // DELETE TASK
+  if(/delete|remove/.test(q)&&/task|todo/.test(q)){
+    var dN=input.replace(/delete|remove|task|todo/gi,'').trim().toLowerCase();
+    var ft=tasks.find(function(t){return t.text.toLowerCase().includes(dN);});
+    if(ft){tasks=tasks.filter(function(t){return t.id!==ft.id;});renderTasks();push('tasks',tasks);return '"'+ft.text+'" removed. '+n(tasks.length)+' tasks remaining.';}
+    return pendingTasks.length?'Which one? Pending: '+pendingTasks.map(function(t){return '"'+t.text+'"';}).join(', ')+'.':'No tasks to delete.';
+  }
+
+  // DELETE HABIT
+  if(/delete|remove/.test(q)&&/habit/.test(q)){
+    var dhN=input.replace(/delete|remove|habit/gi,'').trim().toLowerCase();
+    var fh=habits.find(function(hb){return hb.name.toLowerCase().includes(dhN);});
+    if(fh){habits=habits.filter(function(hb){return hb.id!==fh.id;});renderHabits();push('habits',habits);return '"'+fh.name+'" removed.';}
+    return 'Which habit? You track: '+habits.map(function(hb){return hb.name;}).join(', ')+'.';
+  }
+
+  // LOG GYM
+  if(/log gym|did gym|gym done|worked out|log workout|finished gym|hit the gym/.test(q)||(/gym|workout/.test(q)&&/done|did|log|finish|complete/.test(q))){
+    if(gymToday) return 'Already logged, '+boss+'. '+n(streak)+' sessions this week.';
+    gymDone[todayI]=true;renderGym();push('gymDone',gymDone);
+    return pick(['Logged. '+n(streak+1)+' sessions this week. Discipline stacks up, '+boss+'.','Done — gym is checked off. '+n(streak+1)+' this week.','Logged. Your future self thanks you.']);
+  }
+
+  // GYM STATUS
+  if(/gym|workout|exercise|train/.test(q)){
+    if(gymToday) return 'Gym done today, '+boss+'. '+n(streak)+' sessions this week.';
+    return pick(['Gym not logged yet, '+boss+'. Want me to log it?','No workout logged today. Shall I mark it done?']);
+  }
+
+  // LOG HABIT
+  if(/log habit|did habit|complete habit|mark habit/.test(q)){
+    var lhN=input.replace(/log habit|did habit|complete habit|mark habit/gi,'').trim().toLowerCase();
+    var lh=habits.find(function(hb){return hb.name.toLowerCase().includes(lhN);});
+    if(lh){lh.days[todayI]=true;renderHabits();push('habits',habits);return '"'+lh.name+'" marked done, '+boss+'. '+n(habDone+1)+' habits complete today.';}
+    var undone=habits.filter(function(hb){return !hb.days[todayI];});
+    return 'Which habit? Remaining: '+undone.map(function(hb){return hb.name;}).join(', ')+'.';
+  }
+
+  // SCHEDULE EVENT
+  if(/schedule|add event|new event|remind me at/.test(q)){
+    var tmM=input.match(/at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+    var evT=input.replace(/schedule|add event|new event|remind me|at\s+\d+[:\d]*\s*(?:am|pm)?/gi,'').trim();
+    if(tmM&&evT.length>1){
+      var evH=parseInt(tmM[1]),evMin=tmM[2]?parseInt(tmM[2]):0;
+      if(tmM[3]&&tmM[3].toLowerCase()==='pm'&&evH<12)evH+=12;
+      if(tmM[3]&&tmM[3].toLowerCase()==='am'&&evH===12)evH=0;
+      var evTime=String(evH).padStart(2,'0')+':'+String(evMin).padStart(2,'0');
+      calEvents.push({id:nextCalId++,title:evT,time:evTime,date:now.toDateString(),done:false});
+      renderCal();push('calendar',calEvents);
+      return '"'+evT+'" scheduled at '+evTime+' today, '+boss+'.';
+    }
+    return 'What should I schedule and at what time?';
+  }
+
+  // TASKS
+  if(/task|todo|mission|objective/.test(q)){
+    if(/list|show|what|left|remaining|pending/.test(q)){
+      if(!pendingTasks.length) return pick(['All tasks complete, '+boss+'. Clean sweep today.','Nothing left. Outstanding work.']);
+      return 'Pending: '+pendingTasks.slice(0,4).map(function(t){return '"'+t.text+'"'+(t.time?' at '+t.time:'');}).join(', ')+(pendingTasks.length>4?' and '+n(pendingTasks.length-4)+' more.':'.')+' Keep going, '+boss+'.';
+    }
+    return 'Completed '+n(done)+' out of '+n(total)+' tasks today. '+n(pending)+' still to go.';
+  }
+
+  // HABITS
+  if(/habit|routine|consistency/.test(q)){
+    var hList=habits.map(function(hb){return hb.name+': '+(hb.days[todayI]?'done':'pending');});
+    return 'Habits today — '+hList.join(', ')+'. '+n(habDone)+' out of '+n(habTotal)+' complete.';
+  }
+
+  // SCORE
+  if(/score|progress|how am i|how.*doing|productivity/.test(q)){
+    var sc=Math.round(pct*0.5+(habDone/Math.max(habTotal,1)*100)*0.35+(gymToday?100:0)*0.15);
+    var lb=sc>=90?'exceptional':sc>=75?'strong — keep the momentum':sc>=55?'solid, with room to push':sc>=35?'building — every step counts':'just getting started';
+    return 'Productivity score: '+n(sc)+' percent. That is '+lb+'. Tasks at '+pct+'%, habits at '+Math.round(habDone/Math.max(habTotal,1)*100)+'%, gym '+(gymToday?'done':'not yet')+'.';
+  }
+
+  // BRIEF
+  if(/brief|summary|status|overview|day|report|update/.test(q)){
+    var p=[];
+    p.push('Completed '+n(done)+' out of '+n(total)+' tasks today.');
+    p.push('Gym is '+(gymToday?'done.':'not logged yet.'));
+    p.push('Habits: '+n(habDone)+' out of '+n(habTotal)+'.');
+    if(md) p.push('Mood: '+md.label+'.');
+    return p.join(' ');
+  }
+
+  // WHAT NEXT
+  if(/what should|what next|suggest|recommend|priority/.test(q)){
+    var nxt=pendingTasks.sort(function(a,b){return (a.time||'99:99').localeCompare(b.time||'99:99');})[0];
+    if(nxt) return pick(['Top priority: "'+nxt.text+'"'+(nxt.time?', at '+nxt.time:'')+'. Block thirty minutes and go deep, '+boss+'.','Start with "'+nxt.text+'"'+(nxt.time?' — due at '+nxt.time:'')+'. Everything else waits.']);
+    if(!gymToday) return 'Tasks clear. Log your workout and this day is a win.';
+    return 'Everything is done. Rest and recharge — tomorrow needs a fresh version of you.';
+  }
+
+  // MOTIVATION
+  if(/motivat|inspire|push|pump|hype|fire me|let us go/.test(q)){
+    remember('last_motivation',now.toDateString());
+    return pick(['You completed '+n(done)+' tasks today. Most people stop before they even start. Keep going, '+boss+'.','Discipline is the bridge between goals and results. You show up. That is the hardest part.','Every habit logged, every task checked, every workout done — it compounds. Trust the process.','The version of you six months from now is built by today. Make your choices count.','Hard things build strong people. You are doing the hard things.']);
+  }
+
+  // TIRED/STRESSED
+  if(/tired|exhausted|stressed|overwhelm|burnout|rough day|not okay/.test(q)){
+    remember('last_stress',now.toDateString());
+    return pick(['Take a breath, '+boss+'. You have done '+n(done)+' things today — that matters.','A rough day is not a bad life. One small task. Just start with that.','Your body is telling you something. Rest is productive. Forcing it costs you tomorrow.']);
+  }
+
+  // MOOD
+  if(/mood|feeling|how do i feel/.test(q)) return md?'Mood is set to '+md.label+'. '+md.brief:'Set your mood with the buttons above.';
+
+  // TIME
+  if(/what time|time is it/.test(q)){
+    var hh=h%12||12,ap=h>=12?'PM':'AM';
+    return 'It is '+hh+':'+(m<10?'0'+m:m)+' '+ap+' in Beirut, '+dayName+'.';
+  }
+
+  // SLEEP
+  if(/sleep|bed|rest|good night/.test(q)){
+    remember('last_sleep',now.toDateString());
+    if(h>=21||h<5) return pick(['Good night, '+boss+'. '+n(done)+' tasks done today. Rest well.','Sleep well. Recovery is part of the process.']);
+    return 'It is still '+h+' hundred hours. '+n(pending)+' tasks left. Push through then rest properly.';
+  }
+
+  // LEARN PREFERENCES
+  if(/i (usually|always|normally|prefer|like to|hate|love|wake up|sleep at)/.test(q)){
+    remember('pref_'+Date.now(), input.replace(/^i\s+/i,''));
+    return pick(['Got it — keeping that in mind, '+boss+'.','Noted. I learn something new about you every day.','Remembered. That helps me give you better advice.']);
+  }
+
+  // JOKES
+  if(/joke|funny|laugh/.test(q)) return pick(['Why did the productivity app crash? Too many unfinished tasks. You have '+n(pendingTasks.length)+', '+boss+'.','I tried making a to-do list joke but I kept procrastinating.','My humor runs on the same energy as your habits — improving daily.']);
+
+  // WHO
+  if(/who are you|what are you|your name/.test(q)) return 'I am Kairos — your personal life operating system. Tasks, habits, gym, schedule, prayers. No internet needed. Always here, '+boss+'.';
+
+  // THANKS
+  if(/thank|good job|well done|appreciate/.test(q)) return pick(['Happy to help, '+boss+'. Back to those '+n(pending)+' tasks.','I appreciate that. I perform best when you do.','Any time. That is what I am here for.']);
+
+  // ADD shortcut
+  if(q.startsWith('add ')){ var an=input.slice(4).trim(); if(an.length>1){tasks.push({id:nextTId++,text:an,time:'',done:false});renderTasks();push('tasks',tasks);return 'Added "'+an+'", '+boss+'.';} }
+
+  // FALLBACK with proactive nudge
+  var pnudge=[];
+  if(pending>0) pnudge.push('You still have '+n(pending)+' tasks open. Want to know what to tackle first?');
+  if(!gymToday) pnudge.push('Gym is not logged yet today. Still time to get it in.');
+  if(habDone<habTotal) pnudge.push(n(habTotal-habDone)+' habits still pending today.');
+  var fb='Try: "brief", "tasks left", "add task", "log gym", "add habit", "what next", "motivate me".';
+  if(pnudge.length) fb+=' Also — '+pnudge[Math.floor(Math.random()*pnudge.length)];
+  return fb;
 }
 document.getElementById('aiSend').addEventListener('click',sendAI);
 document.getElementById('aiInp').addEventListener('keydown',e=>{if(e.key==='Enter')sendAI();});
 
 // Gemini key sheet
 function showKeySheet(){const s=document.getElementById('keySheet');s.classList.remove('off');const ki=document.getElementById('keyInp');ki.value=AI_KEY;setTimeout(()=>ki.focus(),80);}
-document.getElementById('keySaveBtn').addEventListener('click',()=>{const v=document.getElementById('keyInp').value.trim();if(!v)return;AI_KEY=v;localStorage.setItem('lo_ai_key',v);document.getElementById('keySheet').classList.add('off');document.getElementById('aiStTxt').textContent='Always Ready';addMsg('ai','Key saved. Hello boss — Kairos online.');});
+document.getElementById('keySaveBtn').addEventListener('click',()=>{const v=document.getElementById('keyInp').value.trim();if(!v)return;AI_KEY=v;document.getElementById('keySheet').classList.add('off');document.getElementById('aiStTxt').textContent='Always Ready';addMsg('ai','Key saved. Hello boss — Kairos online.');});
 
 // ── VOICE (GREETING) ──
 let _vs=null;
@@ -826,6 +1011,75 @@ async function startApp(){
 
 // ── BOOT ──
 if(FBURL){document.getElementById('setupWrap').style.display='none';document.getElementById('appWrap').classList.remove('hidden');startApp();}
+
+// ── MIC — continuous listening, say "stop" to end ──
+setTimeout(function(){
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)
+    navigator.mediaDevices.getUserMedia({audio:true})
+      .then(function(s){s.getTracks().forEach(function(t){t.stop();});})
+      .catch(function(){});
+},1500);
+
+var mobMic=false,mobRec=null;
+
+function stopMobMic(){
+  mobMic=false;
+  var btn=document.getElementById('aiMic');
+  var interim=document.getElementById('micInterim');
+  if(btn){btn.textContent='🎙';btn.style.background='var(--bg2)';}
+  if(interim)interim.textContent='';
+  if(mobRec){try{mobRec.abort();}catch(e){} mobRec=null;}
+}
+
+function startMobMic(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return;
+  mobRec=new SR();
+  mobRec.lang='en-US';
+  mobRec.continuous=true;
+  mobRec.interimResults=true;
+  mobRec.onresult=function(e){
+    var final='',interim='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    var iv=document.getElementById('micInterim');
+    if(iv)iv.textContent=interim||final;
+    var txt=(final||interim).toLowerCase().trim();
+    if(/^(stop|done|cancel|close|stop listening|that is all)$/.test(txt)){
+      stopMobMic();return;
+    }
+    if(final.trim().length>0){
+      var toSend=final.trim();
+      if(iv)iv.textContent='';
+      document.getElementById('aiInp').value=toSend;
+      sendAI();
+    }
+  };
+  mobRec.onerror=function(e){
+    if(e.error==='no-speech')return;
+    if(e.error==='not-allowed'){addMsg('ai','Mic blocked. Tap the lock icon in your browser address bar and allow microphone access.');}
+    stopMobMic();
+  };
+  mobRec.onend=function(){
+    if(mobMic){try{mobRec.start();}catch(e){stopMobMic();}}
+  };
+  try{mobRec.start();}catch(e){stopMobMic();}
+}
+
+(function(){
+  var btn=document.getElementById('aiMic');
+  if(!btn){setTimeout(arguments.callee,500);return;}
+  btn.onclick=function(){
+    if(window.speechSynthesis&&window.speechSynthesis.speaking){window.speechSynthesis.cancel();return;}
+    if(mobMic){stopMobMic();return;}
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){addMsg('ai','Voice input needs Chrome browser, boss. Type instead.');return;}
+    mobMic=true;btn.textContent='🔴';btn.style.background='rgba(239,68,68,0.15)';
+    startMobMic();
+  };
+})();
 </script>
 </body>
 </html>
