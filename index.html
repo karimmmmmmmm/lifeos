@@ -266,10 +266,10 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
     <!-- GYM -->
     <div class="pane" id="p-gym">
       <div class="sec">Gym Tracker</div>
-      <div class="gym-card">
+      <div class="gym-card" id="gymCard">
         <div class="gym-emoji" id="gymEmoji">🏋️</div>
         <div class="gym-st" id="gymSt">Rest Day</div>
-        <div class="gym-sk" id="gymSk">0-DAY STREAK</div>
+        <div class="gym-sk" id="gymSk">0-DAY STREAK THIS WEEK</div>
         <div class="gym-week" id="gymWeek"></div>
         <button class="gym-btn" id="gymBtn">LOG TODAY</button>
       </div>
@@ -334,7 +334,7 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
         <button onclick="speakGreeting()" style="background:none;border:1px solid var(--b2);border-radius:10px;color:var(--w4);font-size:16px;padding:7px 10px;cursor:pointer;margin-left:4px">🔊</button>
       </div>
       <div style="background:var(--bg2);border:1px solid var(--b);border-radius:13px;padding:10px 8px;flex-shrink:0">
-        <div style="font-family:Orbitron,monospace;font-size:7px;letter-spacing:.2em;color:var(--w4);text-align:center;margin-bottom:8px">HOW ARE YOU FEELING?</div>
+        
         <div style="display:flex;gap:4px;justify-content:space-between">
           <button class="mood-btn-mob on" data-m="focused" onclick="setMood('focused')" style="flex:1;background:none;border:1px solid var(--b);border-radius:10px;padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s">
             <span style="font-size:20px">🎯</span><span style="font-family:Orbitron,monospace;font-size:6px;letter-spacing:.08em;color:var(--w4)">FOCUSED</span>
@@ -580,15 +580,45 @@ document.getElementById('hAddInp').addEventListener('keydown',e=>{if(e.key==='En
 
 // ── GYM ──
 function renderGym(){
-  const wk=document.getElementById('gymWeek');wk.innerHTML='';
-  gymDone.forEach((d,i)=>{const el=document.createElement('div');el.className='gwd'+(d?' on':'')+(i===todayI?' td':'');el.textContent=GDL[i];el.addEventListener('click',async()=>{gymDone[i]=!gymDone[i];renderGym();await push('gymDone',gymDone);});wk.appendChild(el);});
-  const streak=gymDone.filter(Boolean).length,done=gymDone[todayI];
+  var wk=document.getElementById('gymWeek');wk.innerHTML='';
+  var dayL=['M','T','W','T','F','S','S'];
+  gymDone.forEach(function(d,i){
+    var el=document.createElement('div');
+    el.className='gwd'+(d?' on':'')+(i===todayI?' td':'');
+    el.textContent=dayL[i];
+    el.title=d?'Logged':'Tap to log this day';
+    el.addEventListener('click',async function(){
+      gymDone[i]=!gymDone[i];
+      renderGym();
+      await push('gymDone',gymDone);
+      // Glow effect on card
+      var card=document.getElementById('gymCard');
+      if(card){
+        card.style.boxShadow=gymDone[i]?'0 0 30px rgba(255,255,255,0.15)':'none';
+      }
+      playSound(gymDone[i]?'complete':'check');
+    });
+    wk.appendChild(el);
+  });
+  var streak=gymDone.filter(Boolean).length;
+  var done=gymDone[todayI];
   document.getElementById('gymEmoji').textContent=done?'💪':'🏋️';
   document.getElementById('gymSt').textContent=done?'Workout Complete ✓':'Rest Day — Recovery';
   document.getElementById('gymSk').textContent=streak+'-DAY STREAK THIS WEEK';
-  const btn=document.getElementById('gymBtn');btn.textContent=done?'MARK AS REST':'LOG WORKOUT';btn.className='gym-btn'+(done?' rest':'');
+  var btn=document.getElementById('gymBtn');
+  btn.textContent=done?'MARK AS REST':'LOG WORKOUT';
+  btn.className='gym-btn'+(done?' rest':'');
+  // Card glow based on today status
+  var card=document.getElementById('gymCard');
+  if(card) card.style.boxShadow=done?'0 0 30px rgba(255,255,255,0.12), inset 0 0 30px rgba(255,255,255,0.03)':'none';
+  card.style.transition='box-shadow 0.5s ease';
 }
-document.getElementById('gymBtn').addEventListener('click',async()=>{gymDone[todayI]=!gymDone[todayI];renderGym();await push('gymDone',gymDone);});
+document.getElementById('gymBtn').addEventListener('click',async function(){
+  gymDone[todayI]=!gymDone[todayI];
+  renderGym();
+  await push('gymDone',gymDone);
+  playSound(gymDone[todayI]?'complete':'check');
+});
 
 // ── HISTORY (the good version) ──
 function renderHistory(){
@@ -987,6 +1017,38 @@ async function sendAI(){
   }
 }
 
+function buildWeatherReply(wx,input){
+  var q=(input||'').toLowerCase();
+  var boss=JSON.parse(localStorage.getItem('lo_kairos_mem')||'{}').name||'boss';
+  function n(x){var w=['zero','one','two','three','four','five','six','seven','eight','nine','ten'];return x<=10?w[x]:String(x);}
+  // Specific hour query
+  var hrMatch=q.match(/at\s+(\d{1,2})\s*(am|pm|o.clock)?/i)||q.match(/(\d{1,2})\s*(am|pm)/i);
+  if(hrMatch){
+    var askH=parseInt(hrMatch[1]);
+    if(hrMatch[2]){var ap=hrMatch[2].toLowerCase();if(ap==='pm'&&askH<12)askH+=12;if(ap==='am'&&askH===12)askH=0;}
+    var hourDesc=askH>=6&&askH<10?'morning — around '+wx.low+' to '+wx.temp+' degrees, '+wx.cond.toLowerCase()
+      :askH>=10&&askH<14?'midday — temperatures climbing toward the high of '+wx.high+' degrees'
+      :askH>=14&&askH<18?'afternoon peak — around '+wx.high+' degrees, '+wx.cond.toLowerCase()
+      :askH>=18&&askH<22?'evening cool-down — temperatures dropping toward '+wx.low+' degrees'
+      :'overnight — around '+wx.low+' degrees, generally quiet';
+    return 'Around '+hrMatch[1]+(hrMatch[2]?' '+hrMatch[2]:'')+' in Beirut, expect the '+hourDesc+'. '+wx.advice;
+  }
+  // Full report
+  var speech='Right now in Beirut, it is '+wx.temp+' degrees and '+wx.cond.toLowerCase()+'. ';
+  speech+='Today reaches a high of '+wx.high+' and drops to a low of '+wx.low+'. ';
+  if(wx.hum) speech+='Humidity is at '+wx.hum+' percent, wind at '+wx.wind+' kilometres per hour. ';
+  if(wx.advice) speech+=wx.advice+'. ';
+  if(wx.forecast&&wx.forecast.length){
+    speech+='Coming days: ';
+    speech+=wx.forecast.map(function(f){return f.day+' looks '+f.cond+', around '+f.temp+' degrees';}).join(', ')+'. ';
+  }
+  var wt=parseInt(wx.temp);
+  if(wt>=30) speech+='Stay hydrated today, '+boss+'.';
+  else if(wt<=15) speech+='Dress warm, '+boss+'.';
+  else speech+='Solid conditions today.';
+  return speech;
+}
+
 function kairosThink(input){
   var q=input.toLowerCase().trim();
   var lastReply=chatH.length?chatH[chatH.length-1].parts[0].text:'';
@@ -1075,6 +1137,26 @@ function kairosThink(input){
     if(gymToday) return 'Already logged, '+boss+'. '+n(streak)+' sessions this week.';
     gymDone[todayI]=true;renderGym();push('gymDone',gymDone);
     return pick(['Logged. '+n(streak+1)+' sessions this week. Discipline stacks up, '+boss+'.','Done — gym is checked off. '+n(streak+1)+' this week.','Logged. Your future self thanks you.']);
+  }
+
+  // ── WEATHER ──
+  if(/weather|rain|temp|hot|cold|outside|jacket|umbrella|forecast|degrees/.test(q)){
+    if(!mobWxData){
+      // Fetch now and reply when ready
+      fetchMobWeather(function(wx){
+        if(!wx){ addMsg('ai','Weather data unavailable right now, '+boss+'. Check your connection.'); return; }
+        var reply=buildWeatherReply(wx,input);
+        addMsg('ai',reply);
+        if(window.speechSynthesis){
+          window.speechSynthesis.cancel();
+          var u=new SpeechSynthesisUtterance(reply.slice(0,250));
+          u.rate=0.88;u.pitch=1.0;
+          window.speechSynthesis.speak(u);
+        }
+      });
+      return 'Fetching weather data for Beirut...';
+    }
+    return buildWeatherReply(mobWxData,input);
   }
 
   // GYM STATUS
@@ -1200,7 +1282,16 @@ function kairosThink(input){
     return pick(['That means you care, '+boss+'. One breath. Then one task.','Nerves without direction is just anxiety. Pick one thing and go.','You have handled hard things before. Same here.']);
   }
 
+  // ── FOCUS MODE ──
+  if(/focus mode|pomodoro|deep work|no distraction/.test(q)){
+    return 'Focus mode is available on the TV dashboard, '+boss+'. On your phone, minimize distractions — put it face down and open your first task. What do you need to focus on?';
+  }
+
   // ADD shortcut
+  if(/bored|nothing to do|slow day/.test(q)){
+    return pendingTasks.length?'Nothing to do? You have '+n(pending)+' tasks waiting, '+boss+'. Pick the hardest one.':'Day is clear. Good time to plan tomorrow or rest intentionally.';
+  }
+
   if(q.startsWith('add ')){ var an=input.slice(4).trim(); if(an.length>1){tasks.push({id:nextTId++,text:an,time:'',done:false});renderTasks();push('tasks',tasks);return 'Added "'+an+'", '+boss+'.';} }
 
   // FALLBACK with proactive nudge
@@ -1813,6 +1904,61 @@ setTimeout(function(){
   nextCalId=Math.max(nextCalId||1,...calEvents.map(function(e){return e.id||0;}),9005)+1;
   if(typeof renderCal==='function') renderCal();
 })();
+
+// ── MOBILE WEATHER FETCH ──
+var mobWxData = null;
+
+function fetchMobWeather(cb){
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=33.8938&longitude=35.5018&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset&timezone=Asia%2FBeirut&forecast_days=4')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var cur=d.current, daily=d.daily;
+      var code=cur.weather_code;
+      var conds={0:'Clear Sky',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Foggy',51:'Light Drizzle',61:'Light Rain',63:'Rain',65:'Heavy Rain',80:'Showers',95:'Thunderstorm'};
+      var hm=daily.temperature_2m_max[0], lm=daily.temperature_2m_min[0];
+      var hlm=daily.temperature_2m_max[0], llm=daily.temperature_2m_min[0];
+      // Forecast
+      var fcDayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      var fcIcons={0:'sunny',1:'mostly clear',2:'partly cloudy',3:'overcast',45:'foggy',51:'light drizzle',61:'light rain',63:'rainy',65:'heavy rain',80:'showers',95:'stormy'};
+      var forecast=[];
+      for(var fi=1;fi<=3;fi++){
+        if(daily.time[fi]){
+          var fdt=new Date(daily.time[fi]+'T12:00:00');
+          forecast.push({
+            day:fcDayNames[fdt.getDay()],
+            temp:Math.round(daily.temperature_2m_max[fi]),
+            cond:fcIcons[daily.weather_code[fi]]||'clear'
+          });
+        }
+      }
+      // Advice
+      var wt=Math.round(cur.temperature_2m);
+      var advice='';
+      if(code>=95) advice='Thunderstorm today — stay indoors.';
+      else if(code>=61) advice='Rain expected — bring an umbrella.';
+      else if(code>=51) advice='Light drizzle — jacket recommended.';
+      else if(wt>=35) advice='Extreme heat — stay hydrated.';
+      else if(wt>=28) advice='Hot afternoon — drink plenty of water.';
+      else if(wt<=12) advice='Cold today — dress warm.';
+      else advice='Conditions look good today in Beirut.';
+      mobWxData={
+        temp:Math.round(cur.temperature_2m),
+        cond:conds[code]||'Clear',
+        high:Math.round(hm), low:Math.round(lm),
+        hum:Math.round(cur.relative_humidity_2m),
+        wind:Math.round(cur.wind_speed_10m),
+        advice:advice,
+        forecast:forecast
+      };
+      if(cb) cb(mobWxData);
+    })
+    .catch(function(){ if(cb) cb(null); });
+}
+
+// Fetch weather on load silently
+setTimeout(function(){ fetchMobWeather(null); }, 2000);
+// Refresh every 30 min
+setInterval(function(){ fetchMobWeather(null); }, 30*60*1000);
 </script>
 </body>
 </html>
