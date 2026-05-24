@@ -209,6 +209,10 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
 .streak-name{font-size:13px;font-weight:600;color:var(--w2)}
 .streak-count{font-family:Space Mono,monospace;font-size:9px;color:var(--w4);margin-top:1px}
 .streak-num{font-family:Orbitron,monospace;font-size:20px;font-weight:800;color:var(--w)}
+
+.gwd:active{transform:scale(0.85)!important;opacity:0.6!important}
+.gwd.on{background:rgba(255,255,255,0.88)!important;color:#000!important;border-color:transparent!important;box-shadow:0 0 8px rgba(255,255,255,0.2)}
+.gwd.on:active{transform:scale(0.85)!important;opacity:0.7!important}
 </style>
 </head>
 <body>
@@ -545,11 +549,11 @@ function renderTasks(){
   buildBriefing();saveHistory();
   // Mission complete
   if(tasks.length&&tasks.every(t=>t.done)){
-    playSound('complete');
+    
     document.getElementById('briefText').textContent='✦ All objectives complete. Outstanding work today, boss.';
   }
 }
-async function toggleT(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;playSound('check');renderTasks();await push('tasks',tasks);}
+async function toggleT(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;renderTasks();await push('tasks',tasks);}
 document.getElementById('addBtn').addEventListener('click',addTask);
 document.getElementById('addInp').addEventListener('keydown',e=>{if(e.key==='Enter')addTask();});
 async function addTask(){
@@ -586,17 +590,23 @@ function renderGym(){
     var el=document.createElement('div');
     el.className='gwd'+(d?' on':'')+(i===todayI?' td':'');
     el.textContent=dayL[i];
-    el.title=d?'Logged':'Tap to log this day';
+    el.style.cssText+='transition:all 0.18s ease;cursor:pointer;user-select:none;-webkit-user-select:none;';
+    // Press feedback - scale down on touch
+    el.addEventListener('touchstart',function(){
+      this.style.transform='scale(0.88)';
+      this.style.opacity='0.7';
+    },{passive:true});
+    el.addEventListener('touchend',function(){
+      this.style.transform='scale(1)';
+      this.style.opacity='1';
+    },{passive:true});
     el.addEventListener('click',async function(){
+      // Visual flash on tap
+      var prev=this.className;
       gymDone[i]=!gymDone[i];
       renderGym();
       await push('gymDone',gymDone);
-      // Glow effect on card
-      var card=document.getElementById('gymCard');
-      if(card){
-        card.style.boxShadow=gymDone[i]?'0 0 30px rgba(255,255,255,0.15)':'none';
-      }
-      playSound(gymDone[i]?'complete':'check');
+      // Card glow update handled in renderGym
     });
     wk.appendChild(el);
   });
@@ -608,16 +618,23 @@ function renderGym(){
   var btn=document.getElementById('gymBtn');
   btn.textContent=done?'MARK AS REST':'LOG WORKOUT';
   btn.className='gym-btn'+(done?' rest':'');
-  // Card glow based on today status
+  // Card glow — white glow when any day logged
   var card=document.getElementById('gymCard');
-  if(card) card.style.boxShadow=done?'0 0 30px rgba(255,255,255,0.12), inset 0 0 30px rgba(255,255,255,0.03)':'none';
-  card.style.transition='box-shadow 0.5s ease';
+  if(card){
+    card.style.transition='box-shadow 0.5s ease, border-color 0.5s ease';
+    if(done){
+      card.style.boxShadow='0 0 40px rgba(255,255,255,0.12), inset 0 0 40px rgba(255,255,255,0.04)';
+      card.style.borderColor='rgba(255,255,255,0.25)';
+    } else {
+      card.style.boxShadow='none';
+      card.style.borderColor='var(--b)';
+    }
+  }
 }
 document.getElementById('gymBtn').addEventListener('click',async function(){
   gymDone[todayI]=!gymDone[todayI];
   renderGym();
   await push('gymDone',gymDone);
-  playSound(gymDone[todayI]?'complete':'check');
 });
 
 // ── HISTORY (the good version) ──
@@ -1747,7 +1764,11 @@ function printWeeklyReport(){
     +'.section{margin-top:24px;padding-top:20px;border-top:1px solid #eee}'
     +'.section-title{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#999;font-family:Arial,sans-serif;margin-bottom:10px}'
     +'@media print{body{padding:20px}}'
-    +'</style></head><body>'
+    +'
+.gwd:active{transform:scale(0.85)!important;opacity:0.6!important}
+.gwd.on{background:rgba(255,255,255,0.88)!important;color:#000!important;border-color:transparent!important;box-shadow:0 0 8px rgba(255,255,255,0.2)}
+.gwd.on:active{transform:scale(0.85)!important;opacity:0.7!important}
+</style></head><body>'
     +'<h1>KAIROS</h1>'
     +'<div class="sub">Weekly Report · '+r.weekStart+' — '+r.weekEnd+'</div>'
     +'<div class="score">'+r.score+'%</div>'
