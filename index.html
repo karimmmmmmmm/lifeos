@@ -199,6 +199,16 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
 
 .hist-filter{flex:1;padding:7px 4px;background:var(--bg2);border:1px solid var(--b);border-radius:8px;font-family:Orbitron,monospace;font-size:7px;letter-spacing:.1em;color:var(--w4);cursor:pointer;text-align:center;transition:all .2s}
 .hist-filter.active{background:rgba(255,255,255,0.08);border-color:var(--b2);color:var(--w)}
+
+.recur-btn{flex:1;padding:6px 4px;background:var(--bg2);border:1px solid var(--b);border-radius:7px;font-family:Orbitron,monospace;font-size:7px;letter-spacing:.08em;color:var(--w4);cursor:pointer;text-align:center;transition:all .2s}
+.recur-btn.active{background:rgba(255,255,255,0.08);border-color:var(--b2);color:var(--w)}
+.streak-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--b)}
+.streak-row:last-child{border-bottom:none}
+.streak-icon{font-size:20px;flex-shrink:0}
+.streak-info{flex:1}
+.streak-name{font-size:13px;font-weight:600;color:var(--w2)}
+.streak-count{font-family:Space Mono,monospace;font-size:9px;color:var(--w4);margin-top:1px}
+.streak-num{font-family:Orbitron,monospace;font-size:20px;font-weight:800;color:var(--w)}
 </style>
 </head>
 <body>
@@ -237,6 +247,13 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
       <div class="brief-card"><div class="brief-label">DAILY BRIEFING</div><div class="brief-text" id="briefText">Loading...</div></div>
       <div><div class="prog-row"><span id="progTxt">0 / 0</span><span id="progPct">0%</span></div><div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div></div>
       <div class="add-row"><input class="add-inp" id="addInp" type="text" placeholder="New task..."><input class="time-inp" id="addTime" type="time"><button class="plus-btn" id="addBtn">+</button></div>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <span style="font-family:Space Mono,monospace;font-size:8px;color:var(--w4);align-self:center;white-space:nowrap">REPEAT:</span>
+        <button class="recur-btn active" data-r="none">Once</button>
+        <button class="recur-btn" data-r="daily">Daily</button>
+        <button class="recur-btn" data-r="weekly">Weekly</button>
+        <button class="recur-btn" data-r="monthly">Monthly</button>
+      </div>
       <div class="sec">Today's Tasks</div>
       <div id="taskList" style="display:flex;flex-direction:column;gap:7px"></div>
     </div>
@@ -274,6 +291,38 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
       <div class="hist-section"><div style="display:flex;gap:5px;flex-wrap:wrap" id="histGymDots"></div></div>
       <div class="sec">Weekly Snapshots</div>
       <div id="histWeeklyList" style="display:flex;flex-direction:column;gap:7px"></div>
+    </div>
+    <!-- JOURNAL -->
+    <div class="pane" id="p-journal">
+      <div class="sec">Daily Journal</div>
+      <!-- Today entry -->
+      <div style="background:var(--bg2);border:1px solid var(--b2);border-radius:14px;padding:14px;flex-shrink:0">
+        <div style="font-family:Orbitron,monospace;font-size:8px;letter-spacing:.15em;color:var(--w4);margin-bottom:8px" id="journalDateLabel">TODAY</div>
+        <textarea id="journalEntry" placeholder="What happened today? What did you accomplish? How do you feel?..." style="width:100%;min-height:120px;background:transparent;border:none;color:var(--w);font-family:Rajdhani,sans-serif;font-size:15px;resize:none;outline:none;line-height:1.6"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--w4)" id="journalWordCount">0 words</span>
+          <button onclick="saveJournalEntry()" style="padding:7px 14px;background:#fff;border:none;border-radius:8px;font-family:Orbitron,monospace;font-size:8px;font-weight:700;color:#000;cursor:pointer">SAVE</button>
+        </div>
+      </div>
+      <!-- Streak display -->
+      <div style="background:var(--bg2);border:1px solid var(--b);border-radius:14px;padding:14px;flex-shrink:0">
+        <div style="font-family:Orbitron,monospace;font-size:9px;letter-spacing:.18em;color:var(--w4);margin-bottom:10px">STREAKS</div>
+        <div id="streakGrid" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <!-- Weekly report -->
+      <div style="background:var(--bg2);border:1px solid var(--b);border-radius:14px;padding:14px;flex-shrink:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-family:Orbitron,monospace;font-size:9px;letter-spacing:.18em;color:var(--w4)">WEEKLY REPORT</div>
+          <div style="display:flex;gap:6px">
+            <button onclick="generateWeeklyReport()" style="padding:6px 10px;background:rgba(255,255,255,0.08);border:1px solid var(--b2);border-radius:7px;font-family:Orbitron,monospace;font-size:7px;color:var(--w3);cursor:pointer">GENERATE</button>
+            <button onclick="printWeeklyReport()" style="padding:6px 10px;background:rgba(255,255,255,0.08);border:1px solid var(--b2);border-radius:7px;font-family:Orbitron,monospace;font-size:7px;color:var(--w3);cursor:pointer">🖨 PRINT</button>
+          </div>
+        </div>
+        <div id="weeklyReportContent" style="font-size:13px;color:var(--w3);line-height:1.7;font-family:Rajdhani,sans-serif">Tap Generate to create your weekly report.</div>
+      </div>
+      <!-- Past journal entries -->
+      <div class="sec">Past Entries</div>
+      <div id="pastJournalList" style="display:flex;flex-direction:column;gap:7px"></div>
     </div>
     <!-- AI -->
     <div class="pane" id="p-ai">
@@ -332,6 +381,11 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
         <button class="cal-filter-btn" data-f="week">Week</button>
         <button class="cal-filter-btn" data-f="all">All</button>
       </div>
+      <!-- Google Calendar Sync -->
+      <div style="display:flex;gap:7px;flex-shrink:0">
+        <button id="gcalSyncBtn" style="flex:1;padding:10px;background:rgba(66,133,244,0.12);border:1px solid rgba(66,133,244,0.3);border-radius:10px;font-family:Orbitron,monospace;font-size:8px;letter-spacing:.12em;color:rgba(66,133,244,0.9);cursor:pointer" onclick="syncGoogleCal()">🔄 SYNC GOOGLE CALENDAR</button>
+        <button id="gcalStatusDot" style="padding:10px 12px;background:var(--bg2);border:1px solid var(--b);border-radius:10px;font-size:11px" title="Last synced">⚪</button>
+      </div>
       <div id="calList" style="display:flex;flex-direction:column;gap:7px"></div>
     </div>
   </div>
@@ -339,7 +393,8 @@ body.light .theme-btn{background:rgba(0,0,0,0.07);border-color:rgba(0,0,0,0.12);
     <button class="bni on" data-p="tasks"><div class="bni-ico">☑️</div><div class="bni-lbl">Tasks</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="habits"><div class="bni-ico">🔁</div><div class="bni-lbl">Habits</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="gym"><div class="bni-ico">🏋️</div><div class="bni-lbl">Gym</div><div class="bni-dot"></div></button>
-    <button class="bni" data-p="history"><div class="bni-ico">📊</div><div class="bni-lbl">History</div><div class="bni-dot"></div></button>
+    <button class="bni" data-p="history"><div class="bni-ico">📊</div><div class="bni-lbl">Stats</div><div class="bni-dot"></div></button>
+    <button class="bni" data-p="journal"><div class="bni-ico">📓</div><div class="bni-lbl">Journal</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="ai"><div class="bni-ico">🤖</div><div class="bni-lbl">AI</div><div class="bni-dot"></div></button>
     <button class="bni" data-p="cal"><div class="bni-ico">📅</div><div class="bni-lbl">Cal</div><div class="bni-dot"></div></button>
   </div>
@@ -1303,6 +1358,460 @@ function startMobMic(){
     mobMic=true;btn.textContent='🔴';btn.style.background='rgba(239,68,68,0.15)';
     startMobMic();
   };
+})();
+
+// ═══════════════════════════════════════════════
+// RECURRING TASKS
+// ═══════════════════════════════════════════════
+var currentRecur = 'none';
+document.querySelectorAll('.recur-btn').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('.recur-btn').forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active');
+    currentRecur = b.dataset.r;
+  });
+});
+
+// Override addTask to include recurrence
+var _origAddTask = addTask || null;
+async function addTask(){
+  var ni=document.getElementById('addInp'), ti=document.getElementById('addTime');
+  var txt=ni.value.trim(); if(!txt)return;
+  var task={id:nextTId++,text:txt,time:ti.value||'',done:false};
+  if(currentRecur!=='none') task.recur=currentRecur;
+  tasks.push(task);
+  ni.value=''; ti.value='';
+  // Reset recur to once
+  document.querySelectorAll('.recur-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelector('.recur-btn[data-r="none"]').classList.add('active');
+  currentRecur='none';
+  renderTasks(); await push('tasks',tasks);
+}
+document.getElementById('addBtn').onclick = addTask;
+document.getElementById('addInp').onkeydown = function(e){if(e.key==='Enter')addTask();};
+
+// Check and regenerate recurring tasks daily
+function checkRecurringTasks(){
+  var today = new Date().toDateString();
+  var lastCheck = localStorage.getItem('lo_recur_check');
+  if(lastCheck===today) return;
+  localStorage.setItem('lo_recur_check', today);
+  var now = new Date();
+  var dayOfWeek = now.getDay(); // 0=Sun
+  var dayOfMonth = now.getDate();
+  var added = false;
+  tasks.forEach(function(t){
+    if(!t.recur||t.recur==='none') return;
+    // Check if this task already exists as done for today
+    var alreadyExists = tasks.some(function(x){
+      return x.text===t.text && x.recur===t.recur && !x.done && x.id!==t.id;
+    });
+    if(alreadyExists) return;
+    if(t.recur==='daily'&&t.done){
+      tasks.push({id:nextTId++,text:t.text,time:t.time||'',done:false,recur:'daily'});
+      added=true;
+    } else if(t.recur==='weekly'&&t.done&&dayOfWeek===1){
+      tasks.push({id:nextTId++,text:t.text,time:t.time||'',done:false,recur:'weekly'});
+      added=true;
+    } else if(t.recur==='monthly'&&t.done&&dayOfMonth===1){
+      tasks.push({id:nextTId++,text:t.text,time:t.time||'',done:false,recur:'monthly'});
+      added=true;
+    }
+  });
+  if(added){renderTasks();push('tasks',tasks);}
+}
+setTimeout(checkRecurringTasks, 2000);
+
+// ═══════════════════════════════════════════════
+// STREAK SYSTEM
+// ═══════════════════════════════════════════════
+function calculateStreaks(){
+  var hist = JSON.parse(localStorage.getItem('lo_history')||'[]');
+  var snaps = JSON.parse(localStorage.getItem('lo_weekly_snaps')||'[]');
+  var today = new Date().toDateString();
+  
+  // Task streak — consecutive days with >50% completion
+  var taskStreak=0, taskBest=parseInt(localStorage.getItem('lo_task_streak_best')||'0');
+  var sorted=[...hist].sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  for(var i=0;i<sorted.length;i++){
+    if((sorted[i].pct||0)>=50) taskStreak++;
+    else break;
+  }
+  if(taskStreak>taskBest){taskBest=taskStreak;localStorage.setItem('lo_task_streak_best',taskBest);}
+  
+  // Gym streak — consecutive weeks with >=3 sessions
+  var gymStreak=0, gymBest=parseInt(localStorage.getItem('lo_gym_streak_best')||'0');
+  var gymSnaps=[...snaps].sort(function(a,b){return new Date(b.weekEnd)-new Date(a.weekEnd);});
+  for(var j=0;j<gymSnaps.length;j++){
+    if((gymSnaps[j].gymSessions||0)>=3) gymStreak++;
+    else break;
+  }
+  // Add current week
+  if(gymDone.filter(Boolean).length>=3) gymStreak++;
+  if(gymStreak>gymBest){gymBest=gymStreak;localStorage.setItem('lo_gym_streak_best',gymBest);}
+  
+  // Habit streak — consecutive days with all habits done
+  var habStreak=0, habBest=parseInt(localStorage.getItem('lo_hab_streak_best')||'0');
+  var habHistory=JSON.parse(localStorage.getItem('lo_hab_history')||'[]');
+  var hSorted=[...habHistory].sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  for(var k=0;k<hSorted.length;k++){
+    if(hSorted[k].allDone) habStreak++;
+    else break;
+  }
+  if(habStreak>habBest){habBest=habStreak;localStorage.setItem('lo_hab_streak_best',habBest);}
+  
+  // Journal streak — consecutive days with entry
+  var journals=JSON.parse(localStorage.getItem('lo_journals')||'[]');
+  var journalStreak=0, journalBest=parseInt(localStorage.getItem('lo_journal_streak_best')||'0');
+  var jSorted=[...journals].sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  for(var l=0;l<jSorted.length;l++){
+    if(jSorted[l].text&&jSorted[l].text.length>10) journalStreak++;
+    else break;
+  }
+  if(journalStreak>journalBest){journalBest=journalStreak;localStorage.setItem('lo_journal_streak_best',journalBest);}
+  
+  return {
+    tasks:{current:taskStreak,best:taskBest},
+    gym:{current:gymStreak,best:gymBest},
+    habits:{current:habStreak,best:habBest},
+    journal:{current:journalStreak,best:journalBest}
+  };
+}
+
+function renderStreaks(){
+  var sg=document.getElementById('streakGrid');if(!sg)return;
+  var str=calculateStreaks();
+  var items=[
+    {icon:'✅',name:'Task Days',sub:'Days with 50%+ completion',...str.tasks},
+    {icon:'🏋️',name:'Gym Weeks',sub:'Weeks with 3+ sessions',...str.gym},
+    {icon:'🔁',name:'Habit Days',sub:'Days with all habits done',...str.habits},
+    {icon:'📓',name:'Journal Days',sub:'Consecutive journal entries',...str.journal},
+  ];
+  sg.innerHTML='';
+  items.forEach(function(item){
+    var row=document.createElement('div');row.className='streak-row';
+    var fire=item.current>=7?'🔥':item.current>=3?'⚡':item.current>=1?'✨':'';
+    row.innerHTML='<div class="streak-icon">'+item.icon+'</div>'
+      +'<div class="streak-info"><div class="streak-name">'+item.name+' '+fire+'</div>'
+      +'<div class="streak-count">'+item.sub+' · Best: '+item.best+'</div></div>'
+      +'<div class="streak-num">'+item.current+'</div>';
+    sg.appendChild(row);
+  });
+}
+
+// Save habit completion daily for streak tracking
+function saveHabHistoryToday(){
+  var today=new Date().toDateString();
+  var habH=JSON.parse(localStorage.getItem('lo_hab_history')||'[]');
+  var allDone=habits.length>0&&habits.every(function(h){return h.days[todayI];});
+  var ex=habH.find(function(x){return x.date===today;});
+  if(ex){ex.allDone=allDone;ex.pct=Math.round(habits.filter(function(h){return h.days[todayI];}).length/Math.max(habits.length,1)*100);}
+  else habH.push({date:today,allDone:allDone,pct:Math.round(habits.filter(function(h){return h.days[todayI];}).length/Math.max(habits.length,1)*100)});
+  if(habH.length>365)habH=habH.slice(-365);
+  localStorage.setItem('lo_hab_history',JSON.stringify(habH));
+}
+setInterval(saveHabHistoryToday,5*60*1000);
+setTimeout(saveHabHistoryToday,3000);
+
+// ═══════════════════════════════════════════════
+// DAILY JOURNAL
+// ═══════════════════════════════════════════════
+function initJournal(){
+  var today=new Date().toDateString();
+  var journals=JSON.parse(localStorage.getItem('lo_journals')||'[]');
+  var todayEntry=journals.find(function(j){return j.date===today;});
+  var ta=document.getElementById('journalEntry');
+  var lbl=document.getElementById('journalDateLabel');
+  if(ta){
+    ta.value=todayEntry?todayEntry.text:'';
+    ta.addEventListener('input',function(){
+      var words=this.value.trim().split(/\s+/).filter(Boolean).length;
+      var wc=document.getElementById('journalWordCount');
+      if(wc)wc.textContent=words+' word'+(words!==1?'s':'');
+    });
+  }
+  if(lbl){
+    var now=new Date();
+    lbl.textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toUpperCase();
+  }
+  renderPastJournals();
+}
+
+function saveJournalEntry(){
+  var ta=document.getElementById('journalEntry');
+  if(!ta||!ta.value.trim())return;
+  var today=new Date().toDateString();
+  var journals=JSON.parse(localStorage.getItem('lo_journals')||'[]');
+  var ex=journals.find(function(j){return j.date===today;});
+  if(ex) ex.text=ta.value.trim();
+  else journals.push({date:today,text:ta.value.trim(),ts:Date.now()});
+  if(journals.length>730)journals=journals.slice(-730); // 2 years
+  localStorage.setItem('lo_journals',JSON.stringify(journals));
+  // Update streak
+  saveHabHistoryToday();
+  renderStreaks();
+  renderPastJournals();
+  // Feedback
+  var btn=event.target;btn.textContent='SAVED ✓';btn.style.background='rgba(74,222,128,0.8)';
+  setTimeout(function(){btn.textContent='SAVE';btn.style.background='#fff';},2000);
+}
+
+function renderPastJournals(){
+  var list=document.getElementById('pastJournalList');if(!list)return;
+  var journals=JSON.parse(localStorage.getItem('lo_journals')||'[]');
+  var past=journals.filter(function(j){return j.date!==new Date().toDateString();}).reverse().slice(0,20);
+  list.innerHTML='';
+  if(!past.length){list.innerHTML='<div style="font-size:12px;color:var(--w4);text-align:center;padding:14px">Previous entries will appear here.</div>';return;}
+  past.forEach(function(j){
+    var el=document.createElement('div');
+    el.style.cssText='background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:12px;cursor:pointer';
+    var dt=new Date(j.date);
+    var words=j.text.trim().split(/\s+/).filter(Boolean).length;
+    el.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:5px">'
+      +'<div style="font-family:Orbitron,monospace;font-size:8px;color:var(--w4)">'+dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+'</div>'
+      +'<div style="font-family:Space Mono,monospace;font-size:8px;color:var(--w4)">'+words+' words</div>'
+      +'</div>'
+      +'<div style="font-size:13px;color:var(--w3);line-height:1.5">'+j.text.slice(0,120)+(j.text.length>120?'...':'')+'</div>';
+    el.addEventListener('click',function(){
+      document.getElementById('journalEntry').value=j.text;
+      window.scrollTo(0,0);
+    });
+    list.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// WEEKLY REPORT WITH PRINT
+// ═══════════════════════════════════════════════
+function generateWeeklyReport(){
+  var now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'}));
+  var hist=JSON.parse(localStorage.getItem('lo_history')||'[]');
+  var journals=JSON.parse(localStorage.getItem('lo_journals')||'[]');
+  var weekAgo=new Date(now-7*86400000);
+  var weekHist=hist.filter(function(p){return new Date(p.date)>=weekAgo;});
+  var weekJournals=journals.filter(function(j){return new Date(j.date)>=weekAgo;});
+  var avgTask=weekHist.length?Math.round(weekHist.reduce(function(s,p){return s+(p.pct||0);},0)/weekHist.length):0;
+  var best=weekHist.reduce(function(b,p){return (p.pct||0)>(b.pct||0)?p:b;},{pct:0,date:''});
+  var worst=weekHist.reduce(function(b,p){return (p.pct||0)<(b.pct||0)?p:b;},{pct:100,date:''});
+  var gymSess=gymDone.filter(Boolean).length;
+  var habRate=habits.length?Math.round(habits.reduce(function(s,h){return s+h.days.filter(Boolean).length;},0)/(habits.length*7)*100):0;
+  var str=calculateStreaks();
+  var score=Math.round(avgTask*0.5+habRate*0.35+gymSess/7*100*0.15);
+  var scoreLabel=score>=85?'Outstanding':score>=70?'Strong':score>=55?'Solid':score>=40?'Building':'Starting Out';
+  
+  // Generate advice based on patterns
+  var advice=[];
+  if(avgTask<50) advice.push('Task completion was below 50%. Consider reducing your daily task count to make it more achievable.');
+  else if(avgTask>=80) advice.push('Excellent task execution this week. You are operating at a high level.');
+  if(gymSess<3) advice.push('Only '+gymSess+' gym session'+(gymSess!==1?'s':'')+' this week. Aim for at least 3-4 next week.');
+  else if(gymSess>=5) advice.push('Outstanding gym consistency — '+gymSess+' sessions this week. Keep that momentum.');
+  if(habRate<60) advice.push('Habit consistency needs work. Focus on your 2-3 most important habits first.');
+  if(weekJournals.length>=5) advice.push('Great journaling this week — '+weekJournals.length+' entries. Self-reflection is compounding.');
+  if(str.tasks.current>=7) advice.push('You are on a '+str.tasks.current+'-day task streak. Protect that.');
+  
+  var monday=new Date(now);monday.setDate(now.getDate()-((now.getDay()+6)%7));
+  var sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+  var fmt=function(d){return d.toLocaleDateString('en-US',{month:'long',day:'numeric'});};
+  
+  var reportHTML='<div style="font-family:Orbitron,monospace;font-size:10px;letter-spacing:.15em;color:var(--w4);margin-bottom:12px">'+fmt(monday)+' — '+fmt(sunday)+'</div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    +'<div style="font-size:22px;font-weight:700;color:var(--w)">'+score+'% overall</div>'
+    +'<div style="font-family:Orbitron,monospace;font-size:9px;color:'+(score>=70?'#4ade80':score>=50?'#fbbf24':'#f87171')+'">'+scoreLabel.toUpperCase()+'</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">'
+    +'<div style="text-align:center;padding:8px;background:var(--bg3);border-radius:9px"><div style="font-size:16px;font-weight:700;color:var(--w)">'+avgTask+'%</div><div style="font-size:9px;color:var(--w4)">Tasks</div></div>'
+    +'<div style="text-align:center;padding:8px;background:var(--bg3);border-radius:9px"><div style="font-size:16px;font-weight:700;color:var(--w)">'+gymSess+'/7</div><div style="font-size:9px;color:var(--w4)">Gym</div></div>'
+    +'<div style="text-align:center;padding:8px;background:var(--bg3);border-radius:9px"><div style="font-size:16px;font-weight:700;color:var(--w)">'+habRate+'%</div><div style="font-size:9px;color:var(--w4)">Habits</div></div>'
+    +'</div>';
+  if(best.date) reportHTML+='<div style="font-size:12px;color:var(--w3);margin-bottom:4px">🏆 Best day: '+best.pct+'% — '+new Date(best.date).toLocaleDateString('en-US',{weekday:'long'})+'</div>';
+  if(worst.date&&weekHist.length>1) reportHTML+='<div style="font-size:12px;color:var(--w3);margin-bottom:10px">📉 Hardest day: '+worst.pct+'% — '+new Date(worst.date).toLocaleDateString('en-US',{weekday:'long'})+'</div>';
+  if(weekJournals.length) reportHTML+='<div style="font-size:12px;color:var(--w3);margin-bottom:10px">📓 Journal entries: '+weekJournals.length+'/7 days</div>';
+  reportHTML+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b)">';
+  advice.forEach(function(a){ reportHTML+='<div style="font-size:12px;color:var(--w3);margin-bottom:6px;padding-left:8px;border-left:2px solid rgba(255,255,255,0.2)">'+a+'</div>'; });
+  reportHTML+='</div>';
+  
+  var rc=document.getElementById('weeklyReportContent');
+  if(rc) rc.innerHTML=reportHTML;
+  // Store for print
+  window._lastReport={score:score,label:scoreLabel,avgTask:avgTask,gymSess:gymSess,habRate:habRate,advice:advice,weekStart:fmt(monday),weekEnd:fmt(sunday),best:best,worst:worst,journals:weekJournals.length};
+}
+
+function printWeeklyReport(){
+  var r=window._lastReport;
+  if(!r){generateWeeklyReport();r=window._lastReport;}
+  var win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><title>Kairos Weekly Report</title><style>'
+    +'*{margin:0;padding:0;box-sizing:border-box}'
+    +'body{font-family:Georgia,serif;padding:40px;max-width:680px;margin:0 auto;color:#111}'
+    +'h1{font-family:Arial,sans-serif;font-size:24px;font-weight:800;letter-spacing:.1em;margin-bottom:4px}'
+    +'.sub{font-size:13px;color:#666;margin-bottom:28px}'
+    +'.score{font-size:48px;font-weight:800;margin:16px 0 4px}'
+    +'.label{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.15em;color:#888;margin-bottom:24px}'
+    +'.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}'
+    +'.stat{text-align:center;padding:14px;border:1px solid #ddd;border-radius:10px}'
+    +'.stat-num{font-size:24px;font-weight:700}'
+    +'.stat-lbl{font-size:11px;color:#888;margin-top:3px;text-transform:uppercase;letter-spacing:.08em}'
+    +'.day-row{font-size:13px;color:#555;margin:5px 0}'
+    +'.advice-item{font-size:13px;color:#444;margin:7px 0;padding-left:12px;border-left:3px solid #ccc;line-height:1.6}'
+    +'.section{margin-top:24px;padding-top:20px;border-top:1px solid #eee}'
+    +'.section-title{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:#999;font-family:Arial,sans-serif;margin-bottom:10px}'
+    +'@media print{body{padding:20px}}'
+    +'</style></head><body>'
+    +'<h1>KAIROS</h1>'
+    +'<div class="sub">Weekly Report · '+r.weekStart+' — '+r.weekEnd+'</div>'
+    +'<div class="score">'+r.score+'%</div>'
+    +'<div class="label">'+r.label+'</div>'
+    +'<div class="grid">'
+    +'<div class="stat"><div class="stat-num">'+r.avgTask+'%</div><div class="stat-lbl">Task Completion</div></div>'
+    +'<div class="stat"><div class="stat-num">'+r.gymSess+'/7</div><div class="stat-lbl">Gym Sessions</div></div>'
+    +'<div class="stat"><div class="stat-num">'+r.habRate+'%</div><div class="stat-lbl">Habit Rate</div></div>'
+    +'</div>'
+    +(r.best&&r.best.date?'<div class="day-row">🏆 Best day: '+r.best.pct+'% — '+new Date(r.best.date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+'</div>':'')
+    +(r.worst&&r.worst.date?'<div class="day-row">📉 Hardest: '+r.worst.pct+'% — '+new Date(r.worst.date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+'</div>':'')
+    +'<div class="day-row">📓 Journal entries: '+r.journals+' / 7 days</div>'
+    +'<div class="section"><div class="section-title">Insights & Recommendations</div>'
+    +r.advice.map(function(a){return '<div class="advice-item">'+a+'</div>';}).join('')
+    +'</div>'
+    +'<div class="section" style="color:#bbb;font-size:11px;text-align:center">Generated by Kairos · '+new Date().toLocaleDateString()+'</div>'
+    +'</body></html>');
+  win.document.close();
+  win.print();
+}
+
+// ═══════════════════════════════════════════════
+// GOOGLE CALENDAR SYNC
+// ═══════════════════════════════════════════════
+var gcalLastSync = null;
+
+async function syncGoogleCal(){
+  var btn=document.getElementById('gcalSyncBtn');
+  var dot=document.getElementById('gcalStatusDot');
+  if(btn){btn.textContent='⏳ LOADING...';btn.disabled=true;}
+  try{
+    if(!FBURL) throw new Error('no_fb');
+    var gcalData=await db.get('lifeos/gcal');
+    if(gcalData&&Array.isArray(gcalData)&&gcalData.length>0){
+      var merged=calEvents.filter(function(e){return !e.fromGcal;});
+      gcalData.forEach(function(ge){
+        var exists=merged.find(function(e){return e.gcalId===ge.gcalId;});
+        if(!exists) merged.push(ge);
+      });
+      calEvents=merged;
+      nextCalId=Math.max(0,...calEvents.map(function(e){return e.id||0;}))+1;
+      renderCal();
+      await push('calendar',calEvents);
+      if(dot) dot.textContent='🟢';
+      if(btn){btn.textContent='✓ SYNCED';btn.disabled=false;}
+      setTimeout(function(){if(btn)btn.textContent='🔄 SYNC GOOGLE CALENDAR';},3000);
+    } else {
+      // No gcal data - show how to sync via Claude
+      if(dot) dot.textContent='⚪';
+      if(btn){btn.textContent='🔄 SYNC GOOGLE CALENDAR';btn.disabled=false;}
+      showGcalInstructions();
+    }
+  }catch(e){
+    if(dot) dot.textContent='⚪';
+    if(btn){btn.textContent='🔄 SYNC GOOGLE CALENDAR';btn.disabled=false;}
+    showGcalInstructions();
+  }
+}
+
+function showGcalInstructions(){
+  var modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;display:flex;align-items:flex-end;backdrop-filter:blur(10px)';
+  modal.innerHTML='<div style="background:var(--bg2);border:1px solid var(--b2);border-radius:20px 20px 0 0;padding:24px;width:100%;animation:su .22s ease">'
+    +'<div style="width:34px;height:3px;background:rgba(255,255,255,0.18);border-radius:2px;margin:0 auto 16px"></div>'
+    +'<div style="font-family:Orbitron,monospace;font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--w);margin-bottom:12px">GOOGLE CALENDAR SYNC</div>'
+    +'<div style="font-size:14px;color:var(--w3);line-height:1.7;margin-bottom:16px">'
+    +'To sync your Google Calendar, open Claude and say:<br><br>'
+    +'<div style="background:var(--bg3);border:1px solid var(--b);border-radius:10px;padding:12px;font-family:Space Mono,monospace;font-size:12px;color:var(--w);margin:8px 0">'
+    +'"Sync my Google Calendar to Kairos Firebase"</div>'
+    +'Claude has your calendar connected and will push all upcoming events directly to your Kairos dashboard.</div>'
+    +'<button onclick="this.parentElement.parentElement.remove()" style="width:100%;padding:13px;background:#fff;border:none;border-radius:11px;font-family:Orbitron,monospace;font-size:9px;font-weight:700;color:#000;cursor:pointer">GOT IT</button>'
+    +'</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+}
+
+// Auto-sync on cal tab open
+document.querySelectorAll('.bni').forEach(function(b){
+  if(b.dataset.p==='cal'){
+    b.addEventListener('click',function(){
+      setTimeout(function(){if(FBURL)syncGoogleCal();},300);
+    });
+  }
+  if(b.dataset.p==='journal'){
+    b.addEventListener('click',function(){
+      setTimeout(function(){initJournal();renderStreaks();},100);
+    });
+  }
+});
+
+// ═══════════════════════════════════════════════
+// PUSH NOTIFICATIONS (via Service Worker)
+// ═══════════════════════════════════════════════
+function requestNotificationPermission(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission==='default'){
+    Notification.requestPermission().then(function(p){
+      if(p==='granted') scheduleNotifications();
+    });
+  } else if(Notification.permission==='granted'){
+    scheduleNotifications();
+  }
+}
+
+function showNotification(title, body, icon){
+  if(Notification.permission!=='granted') return;
+  new Notification(title,{body:body,icon:icon||'',badge:icon||''});
+}
+
+function scheduleNotifications(){
+  // Check every minute for prayer and task reminders
+  setInterval(function(){
+    var now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'}));
+    var h=now.getHours(),m=now.getMinutes();
+    // Morning briefing at 8am
+    if(h===8&&m===0){
+      var pending=tasks.filter(function(t){return !t.done;}).length;
+      showNotification('Good morning, boss.','You have '+pending+' tasks today. Let us make it count.');
+    }
+    // Evening summary at 8pm
+    if(h===20&&m===0){
+      var done=tasks.filter(function(t){return t.done;}).length;
+      var total=tasks.length;
+      showNotification('Evening check-in',''+done+'/'+total+' tasks done today. Gym: '+(gymDone[todayI]?'✓':'pending'));
+    }
+  },60000);
+}
+
+setTimeout(requestNotificationPermission, 5000);
+
+// ═══════════════════════════════════════════════
+// INIT NEW FEATURES ON LOAD
+// ═══════════════════════════════════════════════
+setTimeout(function(){
+  renderStreaks();
+  checkRecurringTasks();
+  // Auto-generate weekly report on Sunday evening
+  var now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Beirut'}));
+  if(now.getDay()===0&&now.getHours()>=20){
+    generateWeeklyReport();
+    saveWeeklySnapshot();
+  }
+}, 3500);
+
+// ── SEED LEBANESE HOLIDAYS FROM GOOGLE CALENDAR ──
+(function seedGcalHolidays(){
+  var holidays=[{"id": 9001, "gcalId": "20260525", "title": "Liberation and Resistance Day", "time": "00:00", "date": "Mon May 25 2026", "done": false, "fromGcal": true, "isHoliday": true}, {"id": 9002, "gcalId": "20260527", "title": "Eid al-Adha", "time": "00:00", "date": "Wed May 27 2026", "done": false, "fromGcal": true, "isHoliday": true}, {"id": 9003, "gcalId": "20260528", "title": "Eid al-Adha Holiday", "time": "00:00", "date": "Thu May 28 2026", "done": false, "fromGcal": true, "isHoliday": true}, {"id": 9004, "gcalId": "20260617", "title": "Muharram (tentative)", "time": "00:00", "date": "Wed Jun 17 2026", "done": false, "fromGcal": true, "isHoliday": true}, {"id": 9005, "gcalId": "20260626", "title": "Ashoura (tentative)", "time": "00:00", "date": "Fri Jun 26 2026", "done": false, "fromGcal": true, "isHoliday": true}];
+  var today=new Date();
+  holidays=holidays.filter(function(h){return new Date(h.date)>=today;});
+  holidays.forEach(function(h){
+    var exists=calEvents.find(function(e){return e.gcalId===h.gcalId;});
+    if(!exists){calEvents.push(h);}
+  });
+  nextCalId=Math.max(nextCalId||1,...calEvents.map(function(e){return e.id||0;}),9005)+1;
+  if(typeof renderCal==='function') renderCal();
 })();
 </script>
 </body>
